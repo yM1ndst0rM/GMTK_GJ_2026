@@ -10,7 +10,6 @@
 [ext_resource type="Script" uid="uid://cp0eaksajpclj" path="res://scripts/snake_decay_timer.gd" id="8_gee14"]
 
 [node name="Game" type="Node2D" unique_id=1083209613]
-position = Vector2(666, 166)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1661928156]
 position = Vector2(-418.895, 0)
@@ -47,9 +46,8 @@ wait_time = 0.15
 [node name="SnakeRenderer" type="Node" parent="." unique_id=2073329812 node_paths=PackedStringArray("snake_layer")]
 script = ExtResource("4_u5sy4")
 snake_layer = NodePath("SnakeLayer")
-source_id = 1
-head_atlas_coordinates = Vector2i(5, 0)
-body_atlas_coordinates = Vector2i(6, 0)
+head_atlas_coordinates = Vector2i(0, 1)
+body_atlas_coordinates = Vector2i(0, 0)
 metadata/_custom_type_script = "uid://dlfq2wqqpt3vi"
 
 [node name="SnakeLayer" type="TileMapLayer" parent="SnakeRenderer" unique_id=165294711]
@@ -61,8 +59,7 @@ navigation_enabled = false
 script = ExtResource("5_gee14")
 world_grid = NodePath("../WorldGrid")
 food_layer = NodePath("FoodLayer")
-source_id = 1
-food_atlas_coordinates = Vector2i(7, 0)
+source_id = 6
 metadata/_custom_type_script = "uid://chs84j85rnc28"
 
 [node name="FoodLayer" type="TileMapLayer" parent="FoodSpawner" unique_id=1959505902]
