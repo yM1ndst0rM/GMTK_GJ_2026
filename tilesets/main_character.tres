@@ -1,0 +1,27 @@
+[gd_resource type="TileSet" format=3 uid="uid://cogjpc5grdxep"]
+
+[ext_resource type="Texture2D" uid="uid://cxa6yi0vltrp7" path="res://assets/tilemaps/count/bat single.png" id="1_5oan1"]
+[ext_resource type="Texture2D" uid="uid://smorruluoat6" path="res://assets/tilemaps/count/merged_player_char_atlas.png" id="1_crcnt"]
+[ext_resource type="Texture2D" uid="uid://cwuwjq3lmxj5k" path="res://assets/tilemaps/count/count moro front.png" id="2_crcnt"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_35bpq"]
+texture = ExtResource("1_crcnt")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+0:1/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_nbx67"]
+texture = ExtResource("1_5oan1")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rc3hd"]
+texture = ExtResource("2_crcnt")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
+[resource]
+tile_size = Vector2i(128, 128)
+sources/2 = SubResource("TileSetAtlasSource_nbx67")
+sources/3 = SubResource("TileSetAtlasSource_rc3hd")
+sources/0 = SubResource("TileSetAtlasSource_35bpq")
