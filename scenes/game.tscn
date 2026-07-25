@@ -7,7 +7,10 @@
 [ext_resource type="Script" uid="uid://chs84j85rnc28" path="res://scripts/food_spawner.gd" id="5_gee14"]
 [ext_resource type="Texture2D" uid="uid://k6r8w2me0riu" path="res://test_tiles/test_tiles.png" id="5_u5sy4"]
 [ext_resource type="Script" uid="uid://dsus4xjcn6por" path="res://scripts/game_manager.gd" id="6_p57ef"]
+[ext_resource type="Script" uid="uid://cb5m36rainatq" path="res://scripts/food_definition.gd" id="7_kvpfn"]
+[ext_resource type="Resource" uid="uid://cyp6tyfees3pm" path="res://resources/blood_orange.tres" id="8_dinhu"]
 [ext_resource type="Script" uid="uid://cp0eaksajpclj" path="res://scripts/snake_decay_timer.gd" id="8_gee14"]
+[ext_resource type="Script" uid="uid://c0pp1rqx8548w" path="res://scripts/food_effect_processor.gd" id="11_kvuet"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_u5sy4"]
 texture = ExtResource("5_u5sy4")
@@ -31,6 +34,28 @@ custom_data_layer_0/name = "blocks_snake"
 custom_data_layer_0/type = 1
 sources/1 = SubResource("TileSetAtlasSource_u5sy4")
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gee14"]
+texture = ExtResource("5_u5sy4")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+3:0/0/custom_data_0 = true
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_0tnpc"]
+tile_size = Vector2i(32, 32)
+terrain_set_0/mode = 0
+terrain_set_0/terrain_0/name = "Terrain 0"
+terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
+custom_data_layer_0/name = "blocks_snake"
+custom_data_layer_0/type = 1
+sources/1 = SubResource("TileSetAtlasSource_gee14")
+
 [node name="Game" type="Node2D" unique_id=1083209613]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1661928156]
@@ -51,14 +76,13 @@ navigation_enabled = false
 [node name="VillagesLayer" type="TileMapLayer" parent="WorldGrid" unique_id=1416334119]
 z_index = 1
 tile_map_data = PackedByteArray("AAACAAIAAQADAAAAAAACAAMAAQADAAAAAAACAAQAAQADAAAAAAADAAIAAQADAAAAAAADAAMAAQADAAAAAAADAAQAAQADAAAAAAAEAAIAAQADAAAAAAAEAAMAAQADAAAAAAAEAAQAAQADAAAAAAAFAAIAAQADAAAAAAAFAAMAAQADAAAAAAAFAAQAAQADAAAAAAAGAAgAAQADAAAAAAAHAAgAAQADAAAAAAAHAAkAAQADAAAAAAAGAAkAAQADAAAAAAA=")
-tile_set = ExtResource("1_80nbo")
+tile_set = SubResource("TileSet_0tnpc")
 navigation_enabled = false
 
-[node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("world_grid", "snake_renderer", "food_spawner", "movement_timer")]
+[node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("world_grid", "snake_renderer", "movement_timer")]
 script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
-food_spawner = NodePath("../FoodSpawner")
 starting_head_cell = Vector2i(6, 6)
 movement_timer = NodePath("Timer")
 
@@ -69,8 +93,6 @@ wait_time = 0.15
 script = ExtResource("4_u5sy4")
 snake_layer = NodePath("SnakeLayer")
 source_id = 1
-head_atlas_coordinates = Vector2i(5, 0)
-body_atlas_coordinates = Vector2i(6, 0)
 metadata/_custom_type_script = "uid://dlfq2wqqpt3vi"
 
 [node name="SnakeLayer" type="TileMapLayer" parent="SnakeRenderer" unique_id=165294711]
@@ -78,12 +100,15 @@ z_index = 3
 tile_set = ExtResource("1_80nbo")
 navigation_enabled = false
 
-[node name="FoodSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "food_layer")]
+[node name="FoodSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "snake_controller", "food_layer", "countdown_labels", "second_timer")]
 script = ExtResource("5_gee14")
 world_grid = NodePath("../WorldGrid")
+snake_controller = NodePath("../SnakeController")
 food_layer = NodePath("FoodLayer")
-source_id = 1
-food_atlas_coordinates = Vector2i(7, 0)
+countdown_labels = NodePath("CountdownLabels")
+food_definitions = Array[ExtResource("7_kvpfn")]([ExtResource("8_dinhu")])
+countdown_font_size = null
+second_timer = NodePath("SecondTimer")
 metadata/_custom_type_script = "uid://chs84j85rnc28"
 
 [node name="FoodLayer" type="TileMapLayer" parent="FoodSpawner" unique_id=1959505902]
@@ -91,14 +116,23 @@ z_index = 11
 tile_set = ExtResource("1_80nbo")
 navigation_enabled = false
 
-[node name="GameManager" type="Node" parent="." unique_id=617365148 node_paths=PackedStringArray("snake_decay_timer", "snake_controller", "food_spawner")]
+[node name="SecondTimer" type="Timer" parent="FoodSpawner" unique_id=839146675]
+
+[node name="CountdownLabels" type="Node2D" parent="FoodSpawner" unique_id=112370572]
+
+[node name="GameManager" type="Node" parent="." unique_id=617365148 node_paths=PackedStringArray("snake_controller", "food_spawner", "snake_decay_timer")]
 script = ExtResource("6_p57ef")
-snake_decay_timer = NodePath("../SnakeDecay")
 snake_controller = NodePath("../SnakeController")
 food_spawner = NodePath("../FoodSpawner")
+snake_decay_timer = NodePath("../SnakeDecay")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]
 script = ExtResource("8_gee14")
 minutes_per_decay = 0.1
 
 [node name="DecayTimer" type="Timer" parent="SnakeDecay" unique_id=504727378]
+
+[node name="FoodEffectProcessor" type="Node" parent="." unique_id=1989367630 node_paths=PackedStringArray("food_spawner", "snake_controller")]
+script = ExtResource("11_kvuet")
+food_spawner = NodePath("../FoodSpawner")
+snake_controller = NodePath("../SnakeController")

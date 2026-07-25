@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="FoodDefinition" format=3 uid="uid://cyp6tyfees3pm"]
+
+[ext_resource type="Script" uid="uid://cb5m36rainatq" path="res://scripts/food_definition.gd" id="1_sioom"]
+
+[resource]
+script = ExtResource("1_sioom")
+food_id = &"blood_orange"
+source_id = 1
+atlas_coordinates = Vector2i(6, 0)
+maximum_active = 5
+minimum_spawn_radius = 5
+lifetime_seconds = 7
+show_countdown = true
+metadata/_custom_type_script = "uid://cb5m36rainatq"

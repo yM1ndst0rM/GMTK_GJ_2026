@@ -6,12 +6,13 @@ signal snake_crashed
 signal food_consumed
 signal snake_moved(head_cell: Vector2i)
 signal snake_length_changed(new_length: int)
-
+## Emit the position of the head  to check whether or not we have
+## "Collided" with food"
+signal head_entered_cell(cell: Vector2i)
 @export_category("References")
 
 @export var world_grid: WorldGrid
 @export var snake_renderer: SnakeRenderer
-@export var food_spawner: FoodSpawner
 
 
 @export_category("Snake Length")
@@ -43,6 +44,10 @@ var _direction: Vector2i = Vector2i.RIGHT
 var _queued_direction: Vector2i = Vector2i.RIGHT
 
 var _movement_enabled: bool = false
+## Since we have the ability to add x amount 
+## of bats at once, we need to pending(ly?)
+## add the bats. 
+var _pending_growth: int = 0
 
 
 func _ready() -> void:
@@ -54,11 +59,6 @@ func _ready() -> void:
 	if snake_renderer == null:
 		push_error(
 			"SnakeController: Snake Renderer has not been assigned."
-		)
-
-	if food_spawner == null:
-		push_error(
-			"SnakeController: Food Spawner has not been assigned."
 		)
 
 	movement_timer.wait_time = seconds_per_move
@@ -88,6 +88,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func reset_snake() -> bool:
+	_pending_growth = 0
 	set_movement_enabled(false)
 
 	var starting_cells: Array[Vector2i] = [
@@ -116,10 +117,9 @@ func reset_snake() -> bool:
 	_direction = Vector2i.RIGHT
 	_queued_direction = Vector2i.RIGHT
 
-	snake_renderer.draw_initial_snake(
+	snake_renderer.draw_snake(
 		_snake_cells
 	)
-	
 
 	snake_length_changed.emit(
 		_snake_cells.size()
@@ -190,53 +190,42 @@ func _move_snake() -> void:
 
 	_direction = _queued_direction
 
-	var previous_head: Vector2i = _snake_cells[0]
-	var next_head: Vector2i = previous_head + _direction
-
-	var eating_food: bool = food_spawner.is_food_at(
-		next_head
+	var next_head: Vector2i = (
+		_snake_cells[0] + _direction
 	)
 
 	if world_grid.is_blocked(next_head):
 		_crash()
 		return
 
-	if _hits_self(next_head, eating_food):
+	var will_grow := _pending_growth > 0
+
+	if _hits_self(next_head, will_grow):
 		_crash()
 		return
 
-	var removed_tail := Vector2i.ZERO
-	var remove_tail := false
+	_snake_cells.push_front(next_head)
+	_occupied_cells[next_head] = true
 
-	if eating_food:
-		_snake_cells.push_front(next_head)
-		_occupied_cells[next_head] = true
+	if _pending_growth > 0:
+		_pending_growth -= 1
 
 		snake_length_changed.emit(
 			_snake_cells.size()
 		)
 	else:
-		removed_tail = _snake_cells.pop_back()
-		remove_tail = true
+		var removed_tail: Vector2i = (
+			_snake_cells.pop_back()
+		)
 
-		_occupied_cells.erase(removed_tail)
+		if removed_tail != next_head:
+			_occupied_cells.erase(removed_tail)
 
-		_snake_cells.push_front(next_head)
-		_occupied_cells[next_head] = true
-
-	snake_renderer.apply_move(
-		next_head,
-		previous_head,
-		removed_tail,
-		remove_tail
-	)
+	snake_renderer.draw_snake(_snake_cells)
 
 	snake_moved.emit(next_head)
-
-	if eating_food:
-		food_consumed.emit()
-
-
+	head_entered_cell.emit(next_head)
+	
 func _hits_self(
 	next_head: Vector2i,
 	will_grow: bool
@@ -266,7 +255,11 @@ func remove_tail_segment() -> bool:
 	var removed_tail: Vector2i = _snake_cells.pop_back()
 
 	_occupied_cells.erase(removed_tail)
-	snake_renderer.erase_segment(removed_tail)
+
+	# Redraw the complete snake after changing its cells.
+	snake_renderer.draw_snake(
+		_snake_cells
+	)
 
 	snake_length_changed.emit(
 		_snake_cells.size()
@@ -281,3 +274,9 @@ func get_snake_length() -> int:
 
 func can_remove_tail_segment() -> bool:
 	return _snake_cells.size() > minimum_snake_length
+	
+func add_growth(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	_pending_growth += amount
