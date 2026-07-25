@@ -19,3 +19,4 @@ mono_crash.*.json
 
 # JetBrains Rider sepcific ignores
 **.idea/
+addons
