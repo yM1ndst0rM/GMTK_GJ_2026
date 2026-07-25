@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bmls4f8y806y3" path="res://assets/tilemaps/interactables/garlic.png" id="1_5wojs"]
 [ext_resource type="Texture2D" uid="uid://dhy4h4ookba0w" path="res://assets/tilemaps/interactables/holy water.png" id="2_w2o5w"]
 [ext_resource type="Texture2D" uid="uid://tev53mq3k2w5" path="res://assets/tilemaps/interactables/town.png" id="3_6iqns"]
+[ext_resource type="Texture2D" uid="uid://2p1m53ov765k" path="res://assets/tilemaps/interactables/bloodorange.png" id="4_w2o5w"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_t50vr"]
 texture = ExtResource("1_5wojs")
@@ -18,9 +19,18 @@ texture_region_size = Vector2i(128, 128)
 texture = ExtResource("3_6iqns")
 texture_region_size = Vector2i(128, 128)
 0:0/0 = 0
+0:0/0/custom_data_0 = true
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6iqns"]
+texture = ExtResource("4_w2o5w")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
 
 [resource]
 tile_size = Vector2i(128, 128)
-sources/3 = SubResource("TileSetAtlasSource_t50vr")
-sources/4 = SubResource("TileSetAtlasSource_u3qhg")
-sources/5 = SubResource("TileSetAtlasSource_vwvml")
+custom_data_layer_0/name = "blocks_snake"
+custom_data_layer_0/type = 1
+sources/0 = SubResource("TileSetAtlasSource_t50vr")
+sources/1 = SubResource("TileSetAtlasSource_u3qhg")
+sources/2 = SubResource("TileSetAtlasSource_vwvml")
+sources/6 = SubResource("TileSetAtlasSource_6iqns")
