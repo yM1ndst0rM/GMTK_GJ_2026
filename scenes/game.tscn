@@ -76,6 +76,6 @@ food_spawner = NodePath("../FoodSpawner")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]
 script = ExtResource("8_gee14")
-minutes_per_decay = 0.1
+decay_after_millis = 2000
 
 [node name="DecayTimer" type="Timer" parent="SnakeDecay" unique_id=504727378]

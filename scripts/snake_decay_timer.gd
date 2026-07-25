@@ -1,20 +1,22 @@
 class_name SnakeDecayTimer
 extends Node
 
+const MILLIS_IN_SECOND = 1000.0
+const SECONDS_IN_MINUTE = 60.0
 
 signal decay_time_expired
-signal countdown_updated(seconds_remaining: float)
+signal countdown_updated(millis_remaining: int)
 
 
 @export_category("Decay")
 
-## Number of minutes between each lost snake segment.
-@export_range(0.05, 60.0, 0.05, "or_greater")
-var minutes_per_decay: float = 1.0
+## Number of milliseconds between each lost snake segment.
+@export_range(50, 60_000, 50, "or_greater")
+var decay_after_millis: int = 1000
 
 ## How often the countdown_updated signal is emitted.
-@export_range(0.05, 1.0, 0.05)
-var countdown_update_interval: float = 0.1
+@export_range(50, 1_000, 50)
+var countdown_update_interval_millis: int = 100
 
 
 @onready var decay_timer: Timer = $DecayTimer
@@ -38,13 +40,13 @@ func _process(delta: float) -> void:
 
 	_countdown_update_accumulator += delta
 
-	if _countdown_update_accumulator < countdown_update_interval:
+	if _countdown_update_accumulator < (countdown_update_interval_millis / MILLIS_IN_SECOND):
 		return
 
 	_countdown_update_accumulator = 0.0
 
 	countdown_updated.emit(
-		get_seconds_remaining()
+		get_millis_remaining()
 	)
 
 
@@ -52,13 +54,13 @@ func start_countdown() -> void:
 	_running = true
 	_countdown_update_accumulator = 0.0
 
-	decay_timer.wait_time = get_decay_seconds()
+	decay_timer.wait_time = get_decay_after_millis() / MILLIS_IN_SECOND
 	decay_timer.start()
 
 	set_process(true)
 
 	countdown_updated.emit(
-		get_seconds_remaining()
+		get_millis_remaining()
 	)
 
 
@@ -68,7 +70,7 @@ func stop_countdown() -> void:
 
 	set_process(false)
 
-	countdown_updated.emit(0.0)
+	countdown_updated.emit(0)
 
 
 func restart_countdown() -> void:
@@ -92,29 +94,29 @@ func resume_countdown() -> void:
 	set_process(true)
 
 
-func set_minutes_per_decay(new_minutes: float) -> void:
-	minutes_per_decay = maxf(new_minutes, 0.05)
+func set_decay_after_millis(new_millis: int) -> void:
+	decay_after_millis = maxf(new_millis, 50)
 
 	if _running:
 		restart_countdown()
 
 
-func get_decay_seconds() -> float:
-	return minutes_per_decay * 60.0
+func get_decay_after_millis() -> int:
+	return decay_after_millis
 
 
-func get_seconds_remaining() -> float:
+func get_millis_remaining() -> int:
 	if not _running:
 		return 0.0
 
-	return decay_timer.time_left
+	return roundi(decay_timer.time_left * MILLIS_IN_SECOND)
 
 # May or may not be useful.. likely used for UI
 func get_formatted_time_remaining() -> String:
-	var total_seconds := ceili(get_seconds_remaining())
+	var total_millis := ceili(get_millis_remaining())
 
-	var minutes = total_seconds / 60
-	var seconds = total_seconds % 60
+	var seconds = total_millis / MILLIS_IN_SECOND
+	var minutes = seconds / SECONDS_IN_MINUTE
 
 	return "%02d:%02d" % [
 		minutes,
