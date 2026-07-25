@@ -6,32 +6,32 @@ const BLOCKS_SNAKE_DATA: StringName = &"blocks_snake"
 
 
 @export_category("World")
-# 64x64 for now. We can change later...
-@export var world_size: Vector2i = Vector2i(64, 64)
+@export var cells_in_playable_area: Dictionary
+@export var blocked_cells: Dictionary
 
 
 var _world_layers: Array[TileMapLayer] = []
-var _blocked_cells: Dictionary = {}
 
 
 func _ready() -> void:
-	rebuild_collision_cache()
+	rebuild_playspace_cache()
 
-
-func rebuild_collision_cache() -> void:
+func rebuild_playspace_cache() -> void:
 	_world_layers.clear()
-	_blocked_cells.clear()
+	blocked_cells.clear()
+	cells_in_playable_area.clear()
 
 	_find_world_layers(self)
 
 	for layer in _world_layers:
-		_cache_layer_collision(layer)
+		_cache_layer_collision_and_play_area(layer)
 
 	print(
-		"WorldGrid found %d layers and %d blocked cells."
+		"WorldGrid found %d layers containing %d playable cells of which %d are blocked."
 		% [
 			_world_layers.size(),
-			_blocked_cells.size()
+			cells_in_playable_area.size(),
+			blocked_cells.size(),
 		]
 	)
 
@@ -44,8 +44,9 @@ func _find_world_layers(parent: Node) -> void:
 		_find_world_layers(child)
 
 
-func _cache_layer_collision(layer: TileMapLayer) -> void:
+func _cache_layer_collision_and_play_area(layer: TileMapLayer) -> void:
 	for cell in layer.get_used_cells():
+		cells_in_playable_area[cell] = true
 		var tile_data: TileData = layer.get_cell_tile_data(cell)
 
 		if tile_data == null:
@@ -59,16 +60,11 @@ func _cache_layer_collision(layer: TileMapLayer) -> void:
 		)
 
 		if blocks_snake:
-			_blocked_cells[cell] = true
+			blocked_cells[cell] = true
 
 
 func is_inside_world(cell: Vector2i) -> bool:
-	return (
-		cell.x >= 0
-		and cell.x < world_size.x
-		and cell.y >= 0
-		and cell.y < world_size.y
-	)
+	return cells_in_playable_area.has(cell)
 
 # Get if blocked, meaning, is the snake blocked from touching it?
 # To set if a layer should be blocking, select a tile from the atlas 
@@ -77,13 +73,12 @@ func is_blocked(cell: Vector2i) -> bool:
 	if not is_inside_world(cell):
 		return true
 
-	return _blocked_cells.has(cell)
+	return blocked_cells.has(cell)
 
 
 func add_blocked_cell(cell: Vector2i) -> void:
 	if is_inside_world(cell):
-		_blocked_cells[cell] = true
-
+		blocked_cells[cell] = true
 
 func remove_blocked_cell(cell: Vector2i) -> void:
-	_blocked_cells.erase(cell)
+	blocked_cells.erase(cell)
