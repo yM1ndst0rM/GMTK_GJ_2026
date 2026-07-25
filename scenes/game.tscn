@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://0if06i3pwuue" path="res://scripts/snake_controller.gd" id="3_p57ef"]
 [ext_resource type="Script" uid="uid://dlfq2wqqpt3vi" path="res://scripts/snake_renderer.gd" id="4_u5sy4"]
 [ext_resource type="Script" uid="uid://chs84j85rnc28" path="res://scripts/food_spawner.gd" id="5_gee14"]
+[ext_resource type="TileSet" uid="uid://cogjpc5grdxep" path="res://tilesets/main_character.tres" id="6_0tnpc"]
 [ext_resource type="TileSet" uid="uid://byl6slysjbnvh" path="res://tilesets/interactables.tres" id="6_gee14"]
 [ext_resource type="Script" uid="uid://dsus4xjcn6por" path="res://scripts/game_manager.gd" id="6_p57ef"]
 [ext_resource type="Script" uid="uid://cp0eaksajpclj" path="res://scripts/snake_decay_timer.gd" id="8_gee14"]
@@ -52,7 +53,7 @@ metadata/_custom_type_script = "uid://dlfq2wqqpt3vi"
 
 [node name="SnakeLayer" type="TileMapLayer" parent="SnakeRenderer" unique_id=165294711]
 z_index = 3
-tile_set = ExtResource("2_0tnpc")
+tile_set = ExtResource("6_0tnpc")
 navigation_enabled = false
 
 [node name="FoodSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "food_layer")]
