@@ -13,7 +13,7 @@
 [node name="Game" type="Node2D" unique_id=1083209613]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1661928156]
-position = Vector2(-988, -227)
+position = Vector2(-776, -254)
 anchor_mode = 0
 zoom = Vector2(0.6, 0.6)
 
@@ -27,7 +27,7 @@ collision_enabled = false
 navigation_enabled = false
 
 [node name="InteractablesLayer" type="TileMapLayer" parent="WorldGrid" unique_id=756583484]
-tile_map_data = PackedByteArray("AAADAAMAAgAAAAAAAAADAAQAAgAAAAAAAAAEAAMAAgAAAAAAAAAEAAQAAgAAAAAAAAAIAAcAAgAAAAAAAAAIAAgAAgAAAAAAAAAJAAcAAgAAAAAAAAAJAAgAAgAAAAAAAAAKAAcAAgAAAAAAAAAKAAgAAgAAAAAAAAAHAAcAAgAAAAAAAAAHAAgAAgAAAAAAAAAJAAEAAgAAAAAAAAAIAAEAAgAAAAAAAAA=")
+tile_map_data = PackedByteArray("AAADAAMAAgAAAAAAAAADAAQAAgAAAAAAAAAEAAMAAgAAAAAAAAAEAAQAAgAAAAAAAAAIAAcAAgAAAAAAAAAIAAgAAgAAAAAAAAAJAAcAAgAAAAAAAAAJAAgAAgAAAAAAAAAHAAcAAgAAAAAAAAAHAAgAAgAAAAAAAAAJAAEAAgAAAAAAAAAIAAEAAgAAAAAAAAAGAAcAAgAAAAAAAAAGAAgAAgAAAAAAAAA=")
 tile_set = ExtResource("6_gee14")
 collision_enabled = false
 navigation_enabled = false
