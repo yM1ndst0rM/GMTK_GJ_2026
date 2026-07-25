@@ -1,0 +1,75 @@
+[gd_resource type="TileSet" format=3 uid="uid://dorbpqtiir0c8"]
+
+[ext_resource type="Texture2D" uid="uid://bbwovjp4rb0s1" path="res://assets/tilemaps/environment/merged_env_atlas.png" id="1_84yf8"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_euxth"]
+texture = ExtResource("1_84yf8")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+0:0/0/terrain_set = 0
+0:0/0/terrains_peering_bit/bottom_right_corner = 0
+0:0/0/terrains_peering_bit/bottom_left_corner = 0
+0:0/0/terrains_peering_bit/top_left_corner = 0
+0:0/0/terrains_peering_bit/top_right_corner = 0
+0:1/0 = 0
+0:2/0 = 0
+0:3/next_alternative_id = 7
+0:3/0 = 0
+0:3/0/terrain_set = 0
+0:3/0/terrains_peering_bit/bottom_right_corner = 0
+0:3/0/terrains_peering_bit/top_right_corner = 0
+0:3/0/custom_data_0 = true
+0:3/1 = 1
+0:3/1/flip_h = true
+0:3/1/transpose = true
+0:3/1/terrain_set = 0
+0:3/1/terrains_peering_bit/bottom_right_corner = 0
+0:3/1/terrains_peering_bit/bottom_left_corner = 0
+0:3/1/custom_data_0 = true
+0:3/2 = 2
+0:3/2/flip_h = true
+0:3/2/flip_v = true
+0:3/2/terrain_set = 0
+0:3/2/terrains_peering_bit/bottom_left_corner = 0
+0:3/2/terrains_peering_bit/top_left_corner = 0
+0:3/2/custom_data_0 = true
+0:3/3 = 3
+0:3/3/flip_v = true
+0:3/3/transpose = true
+0:3/3/terrain_set = 0
+0:3/3/terrains_peering_bit/top_left_corner = 0
+0:3/3/terrains_peering_bit/top_right_corner = 0
+0:3/3/custom_data_0 = true
+0:4/next_alternative_id = 6
+0:4/0 = 0
+0:4/0/terrain_set = 0
+0:4/0/terrains_peering_bit/bottom_right_corner = 0
+0:4/0/custom_data_0 = true
+0:4/1 = 1
+0:4/1/flip_h = true
+0:4/1/transpose = true
+0:4/1/terrain_set = 0
+0:4/1/terrains_peering_bit/bottom_left_corner = 0
+0:4/1/custom_data_0 = true
+0:4/2 = 2
+0:4/2/flip_h = true
+0:4/2/flip_v = true
+0:4/2/terrain_set = 0
+0:4/2/terrains_peering_bit/top_left_corner = 0
+0:4/2/custom_data_0 = true
+0:4/3 = 3
+0:4/3/flip_v = true
+0:4/3/transpose = true
+0:4/3/terrain_set = 0
+0:4/3/terrains_peering_bit/top_right_corner = 0
+0:4/3/custom_data_0 = true
+
+[resource]
+tile_size = Vector2i(128, 128)
+terrain_set_0/mode = 0
+terrain_set_0/terrain_0/name = "Terrain 1"
+terrain_set_0/terrain_0/color = Color(0.5, 0.4375, 0.25, 1)
+custom_data_layer_0/name = "blocks_snake"
+custom_data_layer_0/type = 1
+sources/11 = SubResource("TileSetAtlasSource_euxth")
+tile_proxies/coords_level = [[5, Vector2i(0, 0)], [11, Vector2i(0, 0)], [6, Vector2i(0, 0)], [11, Vector2i(0, 1)], [7, Vector2i(0, 0)], [11, Vector2i(0, 2)], [8, Vector2i(0, 0)], [11, Vector2i(0, 3)], [9, Vector2i(0, 0)], [11, Vector2i(0, 4)]]
