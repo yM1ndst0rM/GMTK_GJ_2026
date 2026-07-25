@@ -1,6 +1,7 @@
 class_name SnakeController
 extends Node
 
+const MILLIS_IN_SECOND = 1000.0
 
 signal snake_crashed
 signal food_consumed
@@ -27,8 +28,8 @@ var minimum_snake_length: int = 1
 
 @export_category("Movement")
 
-@export_range(0.05, 1.0, 0.01)
-var seconds_per_move: float = 0.15
+@export_range(50, 2000, 10)
+var millis_per_move: int = 150
 
 
 @export var movement_timer: Timer
@@ -61,7 +62,7 @@ func _ready() -> void:
 			"SnakeController: Food Spawner has not been assigned."
 		)
 
-	movement_timer.wait_time = seconds_per_move
+	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
 	movement_timer.one_shot = false
 	movement_timer.autostart = false
 
@@ -132,7 +133,7 @@ func set_movement_enabled(enabled: bool) -> void:
 	_movement_enabled = enabled
 
 	if enabled:
-		movement_timer.wait_time = seconds_per_move
+		movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
 		movement_timer.start()
 	else:
 		movement_timer.stop()
@@ -142,13 +143,13 @@ func is_movement_enabled() -> bool:
 	return _movement_enabled
 
 
-func set_movement_speed(new_seconds_per_move: float) -> void:
-	seconds_per_move = maxf(
-		new_seconds_per_move,
-		0.05
+func set_movement_speed(new_millis_per_move: int) -> void:
+	millis_per_move = maxi(
+		new_millis_per_move,
+		50
 	)
 
-	movement_timer.wait_time = seconds_per_move
+	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
 
 
 func get_snake_cells() -> Array[Vector2i]:

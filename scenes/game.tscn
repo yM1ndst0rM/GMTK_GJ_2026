@@ -38,6 +38,7 @@ world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
 food_spawner = NodePath("../FoodSpawner")
 starting_head_cell = Vector2i(6, 6)
+millis_per_move = 200
 movement_timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
@@ -75,6 +76,6 @@ food_spawner = NodePath("../FoodSpawner")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]
 script = ExtResource("8_gee14")
-minutes_per_decay = 0.1
+decay_after_millis = 2000
 
 [node name="DecayTimer" type="Timer" parent="SnakeDecay" unique_id=504727378]
