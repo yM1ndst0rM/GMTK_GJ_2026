@@ -94,8 +94,12 @@ func reset_snake() -> bool:
 	var starting_cells: Array[Vector2i] = [
 		starting_head_cell,
 		starting_head_cell + Vector2i.LEFT,
-		starting_head_cell + Vector2i.LEFT * 2
-	]
+		starting_head_cell + Vector2i.LEFT * 2,
+		starting_head_cell + Vector2i.LEFT * 3,
+		starting_head_cell + Vector2i.LEFT * 4,
+		starting_head_cell + Vector2i.LEFT * 5
+		]
+
 
 	for cell in starting_cells:
 		# Should hopefully never happen... but just in case. 
