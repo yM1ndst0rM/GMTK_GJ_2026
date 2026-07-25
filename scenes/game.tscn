@@ -38,6 +38,7 @@ world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
 food_spawner = NodePath("../FoodSpawner")
 starting_head_cell = Vector2i(6, 6)
+millis_per_move = 200
 movement_timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
