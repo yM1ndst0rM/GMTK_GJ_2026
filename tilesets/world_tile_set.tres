@@ -1,0 +1,25 @@
+[gd_resource type="TileSet" format=3 uid="uid://bfbwsfuou4jnx"]
+
+[ext_resource type="Texture2D" uid="uid://k6r8w2me0riu" path="res://test_tiles/test_tiles.png" id="1_16cek"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_02w8r"]
+texture = ExtResource("1_16cek")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+3:0/0/custom_data_0 = true
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+
+[resource]
+tile_size = Vector2i(32, 32)
+terrain_set_0/mode = 0
+terrain_set_0/terrain_0/name = "Terrain 0"
+terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
+custom_data_layer_0/name = "blocks_snake"
+custom_data_layer_0/type = 1
+sources/1 = SubResource("TileSetAtlasSource_02w8r")
