@@ -42,17 +42,14 @@ func spawn_food(
 
 	var available_cells: Array[Vector2i] = []
 
-	for y in range(world_grid.world_size.y):
-		for x in range(world_grid.world_size.x):
-			var cell := Vector2i(x, y)
+	for cell in world_grid.cells_in_playable_area.keys():
+		if world_grid.is_blocked(cell):
+			continue
 
-			if world_grid.is_blocked(cell):
-				continue
+		if occupied_cells.has(cell):
+			continue
 
-			if occupied_cells.has(cell):
-				continue
-
-			available_cells.append(cell)
+		available_cells.append(cell)
 
 	if available_cells.is_empty():
 		remove_food()
