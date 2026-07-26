@@ -3,6 +3,7 @@
 [ext_resource type="AudioStream" uid="uid://7j5jhwe5jqej" path="res://audio/Background_music.mp3" id="1_dinhu"]
 [ext_resource type="Script" uid="uid://duxlb5rtx12n" path="res://scripts/world_grid.gd" id="1_iywne"]
 [ext_resource type="TileSet" uid="uid://dorbpqtiir0c8" path="res://tilesets/environment.tres" id="2_0tnpc"]
+[ext_resource type="Script" uid="uid://q01q8tmw6op7" path="res://scenes/audio_stream_player_2d.gd" id="2_kvuet"]
 [ext_resource type="Script" uid="uid://0if06i3pwuue" path="res://scripts/snake_controller.gd" id="3_p57ef"]
 [ext_resource type="Script" uid="uid://crosx057sjl0k" path="res://scripts/villager_controller.gd" id="3_vtaks"]
 [ext_resource type="Script" uid="uid://dlfq2wqqpt3vi" path="res://scripts/snake_renderer.gd" id="4_u5sy4"]
@@ -15,10 +16,10 @@
 
 [node name="Game" type="Node2D" unique_id=1083209613]
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1084106167]
+[node name="BG_Music" type="AudioStreamPlayer2D" parent="." unique_id=1084106167]
 stream = ExtResource("1_dinhu")
 volume_db = -7.289
-autoplay = true
+script = ExtResource("2_kvuet")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1661928156]
 position = Vector2(-776, -254)
