@@ -19,7 +19,3 @@ func _exit_tree() -> void:
 	
 	if EventBus.game_ended.is_connected(stop_music):
 		EventBus.game_ended.disconnect(stop_music)
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass

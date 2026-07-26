@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/Bat_leaving.mp3-a429c2c992a925f356fe042d7696c
 
 [params]
 
-loop=true
+loop=false
 loop_offset=0.0
 bpm=0
 beat_count=0
