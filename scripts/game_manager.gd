@@ -13,11 +13,15 @@ signal game_finished(final_score: int, player_won: bool)
 
 @export var food_spawner: FoodSpawner
 
+@export var environment_layer: TileMapLayer
+
+@export var villager_controller: VillagerController
 
 var _game_over: bool = false
 
 
 func _ready() -> void:
+	_set_up_events.call_deferred()
 	if snake_controller == null:
 		push_error(
 			"GameManager: Snake Controller has not been assigned."
@@ -51,7 +55,10 @@ func _ready() -> void:
 	)
 
 	# Ensures every sibling node has finished its _ready().
-	call_deferred("start_new_game")
+	start_new_game.call_deferred()
+
+func _set_up_events():
+	villager_controller.villager_died.connect(_on_villager_died)
 
 # Not sure if we want to have a dedicated button for restart but it's here just in case. 
 func _unhandled_input(event: InputEvent) -> void:
@@ -145,3 +152,19 @@ func _finish_game(player_won: bool) -> void:
 		print(
 			"Game over."
 		)
+		
+		
+func _process(delta: float) -> void:
+	var snake: Array[Vector2i] = snake_controller.get_snake_cells()
+	
+	var captured_cells: Dictionary[Vector2i, bool] = CapturedCellsCalculator.get_all_captured_cells(environment_layer, snake)
+	var vills: Array[Vector2i] = villager_controller.get_all_villagers()
+	for cell in captured_cells:
+		if vills.has(cell):
+			call_deferred(villager_controller.kill_villager(cell))
+	
+func _on_villager_died():
+	var villCount:int = villager_controller.get_all_villagers().size()
+	if villCount == 0:
+		_finish_game(true)
+		

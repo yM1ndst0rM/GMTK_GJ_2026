@@ -1,7 +1,7 @@
 class_name SnakeController
 extends Node
 
-const MILLIS_IN_SECOND = 1000.0
+const MILLIS_IN_SECOND: float = 1000.0
 
 signal snake_crashed
 signal food_consumed
