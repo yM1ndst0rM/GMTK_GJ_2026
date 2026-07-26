@@ -120,7 +120,6 @@ metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
-movement_timer = NodePath("Timer")
 starting_head_cell = Vector2i(6, 6)
 millis_per_move = 170
 

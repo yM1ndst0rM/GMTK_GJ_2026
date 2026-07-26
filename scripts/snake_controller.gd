@@ -1,9 +1,7 @@
 class_name SnakeController
 extends Node
 
-
 const MILLIS_IN_SECOND: float = 1000.0
-
 
 @export_category("References")
 
@@ -21,7 +19,6 @@ var minimum_snake_length: int = 1
 @export_range(1, 100, 1)
 var starting_snake_length: int = 5
 
-
 @export_category("Starting Position")
 
 @export var starting_head_cell: Vector2i = Vector2i(32, 32)
@@ -29,7 +26,6 @@ var starting_snake_length: int = 5
 
 @export_category("Movement")
 
-## Normal delay between movements in milliseconds.
 @export_range(50, 2000, 10)
 var millis_per_move: int = 150
 
@@ -65,64 +61,30 @@ var _next_move_time_scale: float = 1.0
 
 
 func _enter_tree() -> void:
-	if not EventBus.game_started.is_connected(
-		_on_game_started
-	):
-		EventBus.game_started.connect(
-			_on_game_started
-		)
+	if !EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.connect(_on_game_started)
+	
+	if !EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.connect(_on_game_ended)
+		
+	if !EventBus.interaction_triggered_health_change.is_connected(_on_health_change_interaction):
+		EventBus.interaction_triggered_health_change.connect(_on_health_change_interaction)
 
-	if not EventBus.game_ended.is_connected(
-		_on_game_ended
-	):
-		EventBus.game_ended.connect(
-			_on_game_ended
-		)
-
-	if not EventBus.interaction_triggered_health_change.is_connected(
-		_on_health_change_interaction
-	):
-		EventBus.interaction_triggered_health_change.connect(
-			_on_health_change_interaction
-		)
-
-	if not EventBus.interaction_triggered_snake_speed_effect.is_connected(
-		_on_speed_effect_applied_interaction
-	):
-		EventBus.interaction_triggered_snake_speed_effect.connect(
-			_on_speed_effect_applied_interaction
-		)
-
+	if !EventBus.interaction_triggered_snake_speed_effect.is_connected(_on_speed_effect_applied_interaction):
+		EventBus.interaction_triggered_snake_speed_effect.connect(_on_speed_effect_applied_interaction)
 
 func _exit_tree() -> void:
-	if EventBus.game_started.is_connected(
-		_on_game_started
-	):
-		EventBus.game_started.disconnect(
-			_on_game_started
-		)
+	if EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.disconnect(_on_game_started)
 
-	if EventBus.game_ended.is_connected(
-		_on_game_ended
-	):
-		EventBus.game_ended.disconnect(
-			_on_game_ended
-		)
+	if EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.disconnect(_on_game_ended)
+		
+	if EventBus.interaction_triggered_health_change.is_connected(_on_health_change_interaction):
+		EventBus.interaction_triggered_health_change.disconnect(_on_health_change_interaction)
 
-	if EventBus.interaction_triggered_health_change.is_connected(
-		_on_health_change_interaction
-	):
-		EventBus.interaction_triggered_health_change.disconnect(
-			_on_health_change_interaction
-		)
-
-	if EventBus.interaction_triggered_snake_speed_effect.is_connected(
-		_on_speed_effect_applied_interaction
-	):
-		EventBus.interaction_triggered_snake_speed_effect.disconnect(
-			_on_speed_effect_applied_interaction
-		)
-
+	if EventBus.interaction_triggered_snake_speed_effect.is_connected(_on_speed_effect_applied_interaction):
+		EventBus.interaction_triggered_snake_speed_effect.disconnect(_on_speed_effect_applied_interaction)
 
 func _ready() -> void:
 	if world_grid == null:
@@ -201,17 +163,9 @@ func reset_snake() -> bool:
 	_direction = Vector2i.RIGHT
 	_queued_direction = Vector2i.RIGHT
 
-	# The starting head already counts as one segment.
-	_current_health_change = maxi(
-		starting_snake_length - 1,
-		0
-	)
+	snake_renderer.clear_snake()
 
-	_next_move_time_scale = 1.0
-
-	snake_renderer.draw_snake(
-		_snake_cells
-	)
+	_current_health_change += starting_snake_length
 
 	_update_captured_cells()
 	_emit_snake_state()
@@ -262,6 +216,14 @@ func _emit_snake_state() -> void:
 		get_snake_cells()
 	)
 
+func _set_up_movement_timer(time_scale: float = 1):
+	print("Setting time scale to: ", time_scale)
+	movement_timer.wait_time = (millis_per_move / MILLIS_IN_SECOND) * time_scale
+	movement_timer.one_shot = false
+	movement_timer.autostart = false
+
+	if !movement_timer.timeout.is_connected(_on_movement_timer_timeout):
+		movement_timer.timeout.connect(_on_movement_timer_timeout)
 
 func get_snake_cells() -> Array[Vector2i]:
 	var copied_cells: Array[Vector2i] = []
@@ -341,10 +303,10 @@ func _move_snake() -> void:
 			next_head
 		)
 
-		_occupied_cells[
-			next_head
-		] = true
-
+	if _current_health_change > 0:
+		_snake_cells.push_front(next_head)
+		snake_renderer.push_head(next_head, _direction)
+		_occupied_cells[next_head] = true
 		_current_health_change -= 1
 
 		EventBus.snake_health_changed.emit(
@@ -356,22 +318,16 @@ func _move_snake() -> void:
 		var removed_tail: Vector2i = (
 			_snake_cells.pop_back()
 		)
-
+		snake_renderer.clear_cell(removed_tail)
 		_occupied_cells.erase(
 			removed_tail
 		)
 
-		_snake_cells.push_front(
-			next_head
-		)
+		_snake_cells.push_front(next_head)
+		snake_renderer.push_head(next_head, _direction)
+		_occupied_cells[next_head] = true
 
-		_occupied_cells[
-			next_head
-		] = true
-
-	snake_renderer.draw_snake(
-		_snake_cells
-	)
+	snake_renderer.draw_snake()
 
 	# InteractableSpawner receives this synchronously.
 	# If the snake is near garlic, the speed-effect event
@@ -469,17 +425,14 @@ func remove_tail_segment() -> void:
 
 	var old_health: int = get_health()
 
-	var removed_tail: Vector2i = (
-		_snake_cells.pop_back()
-	)
+	snake_renderer.clear_cell(removed_tail)
+	_occupied_cells.erase(removed_tail)
 
 	_occupied_cells.erase(
 		removed_tail
 	)
 
-	snake_renderer.draw_snake(
-		_snake_cells
-	)
+	snake_renderer.draw_snake()
 
 	EventBus.snake_health_changed.emit(
 		old_health,
