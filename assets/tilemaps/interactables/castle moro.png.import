@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c6y1q5am54m5i"
-path="res://.godot/imported/ground2.png-337cc51f9148aab658bc3295fe829cce.ctex"
+uid="uid://dqddl4rtij1sa"
+path="res://.godot/imported/castle moro.png-8107170a0310953bbff091776418f2a6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/tilemaps/environment/ground2.png"
-dest_files=["res://.godot/imported/ground2.png-337cc51f9148aab658bc3295fe829cce.ctex"]
+source_file="res://assets/tilemaps/interactables/castle moro.png"
+dest_files=["res://.godot/imported/castle moro.png-8107170a0310953bbff091776418f2a6.ctex"]
 
 [params]
 
