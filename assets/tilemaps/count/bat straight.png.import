@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cwuwjq3lmxj5k"
-path="res://.godot/imported/count moro front.png-b1439717684de05098656435ac85e7af.ctex"
+uid="uid://bwh6w8jo43so5"
+path="res://.godot/imported/bat straight.png-d724a63454ccd1fd8687de717babcdf3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/tilemaps/count/count moro front.png"
-dest_files=["res://.godot/imported/count moro front.png-b1439717684de05098656435ac85e7af.ctex"]
+source_file="res://assets/tilemaps/count/bat straight.png"
+dest_files=["res://.godot/imported/bat straight.png-d724a63454ccd1fd8687de717babcdf3.ctex"]
 
 [params]
 
