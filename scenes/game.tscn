@@ -57,9 +57,9 @@ metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
+movement_timer = NodePath("Timer")
 starting_head_cell = Vector2i(6, 6)
 millis_per_move = 170
-movement_timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
 wait_time = 0.15
@@ -105,13 +105,9 @@ countdown_update_interval_millis = 50
 
 [node name="DecayTimer" type="Timer" parent="SnakeDecay" unique_id=504727378]
 
-[node name="InteractableItemEffectProcessor" type="Node" parent="." unique_id=1494883729 node_paths=PackedStringArray("interactable_spawner", "snake_controller")]
+[node name="InteractableItemEffectProcessor" type="Node" parent="." unique_id=1494883729]
 script = ExtResource("13_kvuet")
-interactable_spawner = NodePath("../InteractableSpawner")
-snake_controller = NodePath("../SnakeController")
 
-[node name="GarlicRepulsionSystem" type="Node" parent="." unique_id=1695820827 node_paths=PackedStringArray("interactable_spawner", "world_grid", "snake_controller")]
+[node name="GarlicRepulsionSystem" type="Node" parent="." unique_id=1695820827 node_paths=PackedStringArray("interactable_spawner")]
 script = ExtResource("15_ir15t")
 interactable_spawner = NodePath("../InteractableSpawner")
-world_grid = NodePath("../WorldGrid")
-snake_controller = NodePath("../SnakeController")

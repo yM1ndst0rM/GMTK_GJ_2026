@@ -2,27 +2,13 @@ class_name InteractableSpawner
 extends Node
 
 
-signal interactable_collected(
-	definition: InteractablesDefinition,
-	seconds_remaining: int
-)
-
-signal interactable_expired(
-	definition: InteractablesDefinition,
-	cell: Vector2i
-)
-
-signal active_count_changed(
-	interactable_id: StringName,
-	active_count: int
-)
+const GARLIC_ID: StringName = &"garlic"
 
 
 ## Stores the state of one interactable currently placed
 ## somewhere on the map.
 class InteractableInstance:
 	extends RefCounted
-
 
 	var definition: InteractablesDefinition
 	var cell: Vector2i
@@ -45,8 +31,6 @@ class InteractableInstance:
 @export_category("References")
 
 @export var world_grid: WorldGrid
-@export var snake_controller: SnakeController
-@export var villager_controller: VillagerController
 @export var interactable_layer: TileMapLayer
 @export var countdown_labels: Node2D
 @export var second_timer: Timer
@@ -54,8 +38,15 @@ class InteractableInstance:
 
 @export_category("Interactable Types")
 
-
+# The misspelling is preserved so existing scene assignments remain valid.
 @export var interactable_defintions: Array[InteractablesDefinition] = []
+
+
+@export_category("Garlic")
+
+@export_range(0, 5, 1)
+var garlic_activation_radius: int = 1
+
 
 @export_category("Countdown Appearance")
 
@@ -81,6 +72,90 @@ var _spawn_session_id: int = 0
 var _running: bool = false
 
 
+# Snake state received from EventBus.
+var _snake_head_cell: Vector2i = Vector2i.ZERO
+var _snake_occupied_cells: Dictionary = {}
+var _has_snake_state: bool = false
+
+
+# Villager state received from EventBus.
+var _villager_cells: Array[Vector2i] = []
+
+
+func _enter_tree() -> void:
+	if not EventBus.game_started.is_connected(
+		_on_game_started
+	):
+		EventBus.game_started.connect(
+			_on_game_started
+		)
+
+	if not EventBus.game_ended.is_connected(
+		_on_game_ended
+	):
+		EventBus.game_ended.connect(
+			_on_game_ended
+		)
+
+	if not EventBus.snake_state_changed.is_connected(
+		_on_snake_state_changed
+	):
+		EventBus.snake_state_changed.connect(
+			_on_snake_state_changed
+		)
+
+	if not EventBus.snake_moved.is_connected(
+		_on_snake_moved
+	):
+		EventBus.snake_moved.connect(
+			_on_snake_moved
+		)
+
+	if not EventBus.villager_cells_changed.is_connected(
+		_on_villager_cells_changed
+	):
+		EventBus.villager_cells_changed.connect(
+			_on_villager_cells_changed
+		)
+
+
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(
+		_on_game_started
+	):
+		EventBus.game_started.disconnect(
+			_on_game_started
+		)
+
+	if EventBus.game_ended.is_connected(
+		_on_game_ended
+	):
+		EventBus.game_ended.disconnect(
+			_on_game_ended
+		)
+
+	if EventBus.snake_state_changed.is_connected(
+		_on_snake_state_changed
+	):
+		EventBus.snake_state_changed.disconnect(
+			_on_snake_state_changed
+		)
+
+	if EventBus.snake_moved.is_connected(
+		_on_snake_moved
+	):
+		EventBus.snake_moved.disconnect(
+			_on_snake_moved
+		)
+
+	if EventBus.villager_cells_changed.is_connected(
+		_on_villager_cells_changed
+	):
+		EventBus.villager_cells_changed.disconnect(
+			_on_villager_cells_changed
+		)
+
+
 func _ready() -> void:
 	if not _references_are_valid():
 		return
@@ -89,13 +164,12 @@ func _ready() -> void:
 	second_timer.one_shot = false
 	second_timer.autostart = false
 
-	second_timer.timeout.connect(
+	if not second_timer.timeout.is_connected(
 		_on_second_timer_timeout
-	)
-
-	snake_controller.head_entered_cell.connect(
-		_on_snake_head_entered_cell
-	)
+	):
+		second_timer.timeout.connect(
+			_on_second_timer_timeout
+		)
 
 	countdown_labels.z_index = (
 		interactable_layer.z_index + 1
@@ -108,12 +182,6 @@ func _references_are_valid() -> bool:
 	if world_grid == null:
 		push_error(
 			"InteractableSpawner: World Grid has not been assigned."
-		)
-		valid = false
-
-	if snake_controller == null:
-		push_error(
-			"InteractableSpawner: Snake Controller has not been assigned."
 		)
 		valid = false
 
@@ -138,6 +206,78 @@ func _references_are_valid() -> bool:
 	return valid
 
 
+func _on_game_started() -> void:
+	start_spawning()
+
+
+func _on_game_ended(
+	_player_won: bool
+) -> void:
+	stop_spawning()
+
+
+func _on_snake_state_changed(
+	head_cell: Vector2i,
+	body_cells: Array[Vector2i]
+) -> void:
+	_cache_snake_state(
+		head_cell,
+		body_cells
+	)
+
+	if _running:
+		_maintain_spawn_targets()
+
+
+func _on_snake_moved(
+	_old_head_cell: Vector2i,
+	head_cell: Vector2i,
+	body_cells: Array[Vector2i]
+) -> void:
+	_cache_snake_state(
+		head_cell,
+		body_cells
+	)
+
+	_try_collect_contact_interactable(
+		head_cell
+	)
+
+	_try_collect_nearby_garlic(
+		head_cell
+	)
+
+	if _running:
+		_maintain_spawn_targets()
+
+
+func _on_villager_cells_changed(
+	villager_cells: Array[Vector2i]
+) -> void:
+	_villager_cells.clear()
+	_villager_cells.assign(
+		villager_cells
+	)
+
+	if _running:
+		_maintain_spawn_targets()
+
+
+func _cache_snake_state(
+	head_cell: Vector2i,
+	body_cells: Array[Vector2i]
+) -> void:
+	_snake_head_cell = head_cell
+	_has_snake_state = true
+
+	_snake_occupied_cells.clear()
+
+	for body_cell in body_cells:
+		_snake_occupied_cells[
+			body_cell
+		] = true
+
+
 func start_spawning() -> void:
 	clear_all_interactable()
 
@@ -148,7 +288,6 @@ func start_spawning() -> void:
 	)
 
 	_spawn_enabled.clear()
-
 	_running = true
 
 	second_timer.start()
@@ -165,28 +304,28 @@ func start_spawning() -> void:
 			definition.initial_spawn_delay_seconds
 			<= 0.0
 		):
-			_spawn_enabled[interactable_id] = true
+			_spawn_enabled[
+				interactable_id
+			] = true
 		else:
-			_spawn_enabled[interactable_id] = false
+			_spawn_enabled[
+				interactable_id
+			] = false
 
 			_enable_spawn_after_delay(
 				definition,
 				current_session_id
 			)
 
-	# Immediately spawn types that have no delay.
 	_maintain_spawn_targets()
 
 
 func stop_spawning() -> void:
 	_running = false
 
-	# Any delayed function from the previous game will
-	# see a different session ID and stop.
 	_spawn_session_id += 1
 
 	second_timer.stop()
-
 	_spawn_enabled.clear()
 
 	clear_all_interactable()
@@ -215,15 +354,25 @@ func _enable_spawn_after_delay(
 		definition.interactable_id
 	)
 
-	_fill_spawn_target(definition)
+	_fill_spawn_target(
+		definition
+	)
 
 
-func collect_at(cell: Vector2i) -> bool:
-	return _collect_interactable_at(cell)
+func collect_at(
+	cell: Vector2i
+) -> bool:
+	return _collect_interactable_at(
+		cell
+	)
 
 
-func has_interactable_at(cell: Vector2i) -> bool:
-	return _active_interactable.has(cell)
+func has_interactable_at(
+	cell: Vector2i
+) -> bool:
+	return _active_interactable.has(
+		cell
+	)
 
 
 func get_definition_at(
@@ -255,7 +404,9 @@ func get_cells_for_id(
 			instance.definition.interactable_id
 			== interactable_id
 		):
-			matching_cells.append(cell)
+			matching_cells.append(
+				cell
+			)
 
 	return matching_cells
 
@@ -263,7 +414,7 @@ func get_cells_for_id(
 func get_active_count(
 	interactable_id: StringName
 ) -> int:
-	var active_count := 0
+	var active_count: int = 0
 
 	for instance_value in _active_interactable.values():
 		var instance: InteractableInstance = (
@@ -298,14 +449,18 @@ func remove_interactable_at(
 		definition.interactable_id
 	)
 
-	_remove_interactable_instance(cell)
+	_remove_interactable_instance(
+		cell
+	)
 
 	if spawn_replacement:
-		_fill_spawn_target(definition)
+		_fill_spawn_target(
+			definition
+		)
 	else:
-		# A false value makes this interactable single-use
-		# for the remainder of the current game.
-		_spawn_enabled[interactable_id] = false
+		_spawn_enabled[
+			interactable_id
+		] = false
 
 	return true
 
@@ -340,17 +495,19 @@ func _on_second_timer_timeout() -> void:
 			_active_interactable[cell]
 		)
 
-		# A lifetime of zero means the interactable
-		# does not expire automatically.
 		if instance.definition.lifetime_seconds <= 0:
 			continue
 
 		instance.seconds_remaining -= 1
 
 		if instance.seconds_remaining <= 0:
-			expired_cells.append(cell)
+			expired_cells.append(
+				cell
+			)
 		else:
-			_update_countdown_label(instance)
+			_update_countdown_label(
+				instance
+			)
 
 	for cell in expired_cells:
 		if not _active_interactable.has(cell):
@@ -364,9 +521,11 @@ func _on_second_timer_timeout() -> void:
 			instance.definition
 		)
 
-		_remove_interactable_instance(cell)
+		_remove_interactable_instance(
+			cell
+		)
 
-		interactable_expired.emit(
+		EventBus.interactable_expired.emit(
 			definition,
 			cell
 		)
@@ -389,13 +548,25 @@ func _maintain_spawn_targets() -> void:
 		if not spawning_enabled:
 			continue
 
-		_fill_spawn_target(definition)
+		_fill_spawn_target(
+			definition
+		)
 
 
 func _fill_spawn_target(
 	definition: InteractablesDefinition
 ) -> void:
 	if not _running:
+		return
+
+	if not _has_snake_state:
+		return
+
+	if (
+		definition.spawn_origin
+		== InteractablesDefinition.SpawnOrigin.NEAR_VILLAGERS
+		and _villager_cells.is_empty()
+	):
 		return
 
 	var spawning_enabled: bool = bool(
@@ -422,19 +593,14 @@ func _spawn_one(
 	definition: InteractablesDefinition
 ) -> bool:
 	var spawn_centers: Array[Vector2i] = (
-		_get_spawn_centers(definition)
+		_get_spawn_centers(
+			definition
+		)
 	)
 
 	if spawn_centers.is_empty():
-		push_warning(
-			"InteractableSpawner: No spawn centers found for '%s'."
-			% definition.interactable_id
-		)
-
 		return false
 
-	# Dictionary prevents duplicate cells when multiple
-	# village spawn radiuses overlap.
 	var candidate_lookup: Dictionary = {}
 
 	for center_cell in spawn_centers:
@@ -446,13 +612,18 @@ func _spawn_one(
 		)
 
 		for candidate in center_candidates:
-			candidate_lookup[candidate] = true
+			candidate_lookup[
+				candidate
+			] = true
 
 	var candidates: Array[Vector2i] = []
 
 	for cell_value in candidate_lookup.keys():
 		var candidate_cell: Vector2i = cell_value
-		candidates.append(candidate_cell)
+
+		candidates.append(
+			candidate_cell
+		)
 
 	if candidates.is_empty():
 		push_warning(
@@ -486,27 +657,26 @@ func _get_spawn_centers(
 ) -> Array[Vector2i]:
 	match definition.spawn_origin:
 		InteractablesDefinition.SpawnOrigin.NEAR_VILLAGERS:
-			if villager_controller == null:
-				push_warning(
-					"InteractableSpawner: Villager Controller "
-					+ "has not been assigned."
-				)
+			var centers: Array[Vector2i] = []
 
-				return []
+			centers.assign(
+				_villager_cells
+			)
 
-			return villager_controller.get_all_villagers()
+			return centers
 
 		InteractablesDefinition.SpawnOrigin.NEAR_SNAKE:
+			if not _has_snake_state:
+				return []
+
 			return [
-				snake_controller.get_head_cell()
+				_snake_head_cell
 			]
 
 		_:
 			return []
 
 
-## Uses a bounded brute-force search around the supplied
-## center cell.
 func _get_spawn_candidates(
 	definition: InteractablesDefinition,
 	center_cell: Vector2i
@@ -571,7 +741,9 @@ func _get_spawn_candidates(
 			):
 				continue
 
-			candidates.append(candidate)
+			candidates.append(
+				candidate
+			)
 
 	return candidates
 
@@ -580,13 +752,16 @@ func _is_valid_spawn_cell(
 	cell: Vector2i,
 	definition: InteractablesDefinition
 ) -> bool:
+	if not _has_snake_state:
+		return false
+
 	if not world_grid.is_inside_world(cell):
 		return false
 
 	if world_grid.is_blocked(cell):
 		return false
 
-	if snake_controller.occupies_cell(cell):
+	if _snake_occupied_cells.has(cell):
 		return false
 
 	if _active_interactable.has(cell):
@@ -597,18 +772,14 @@ func _is_valid_spawn_cell(
 	)
 
 	if minimum_distance > 0:
-		var snake_head: Vector2i = (
-			snake_controller.get_head_cell()
-		)
-
 		var minimum_distance_squared: int = (
 			minimum_distance * minimum_distance
 		)
 
-		# Exact minimum distance is allowed.
 		if (
-			cell.distance_squared_to(snake_head)
-			< minimum_distance_squared
+			cell.distance_squared_to(
+				_snake_head_cell
+			) < minimum_distance_squared
 		):
 			return false
 
@@ -643,11 +814,15 @@ func _create_interactable_instance(
 		countdown_label
 	)
 
-	_active_interactable[cell] = instance
+	_active_interactable[
+		cell
+	] = instance
 
-	_update_countdown_label(instance)
+	_update_countdown_label(
+		instance
+	)
 
-	active_count_changed.emit(
+	EventBus.interactable_active_count_changed.emit(
 		definition.interactable_id,
 		get_active_count(
 			definition.interactable_id
@@ -669,16 +844,24 @@ func _remove_interactable_instance(
 		instance.definition.interactable_id
 	)
 
-	interactable_layer.erase_cell(cell)
+	interactable_layer.erase_cell(
+		cell
+	)
 
-	if is_instance_valid(instance.countdown_label):
+	if is_instance_valid(
+		instance.countdown_label
+	):
 		instance.countdown_label.queue_free()
 
-	_active_interactable.erase(cell)
+	_active_interactable.erase(
+		cell
+	)
 
-	active_count_changed.emit(
+	EventBus.interactable_active_count_changed.emit(
 		interactable_id,
-		get_active_count(interactable_id)
+		get_active_count(
+			interactable_id
+		)
 	)
 
 
@@ -695,11 +878,13 @@ func _update_countdown_label(
 	)
 
 
-func _on_snake_head_entered_cell(
-	cell: Vector2i
+func _try_collect_contact_interactable(
+	head_cell: Vector2i
 ) -> void:
 	var definition: InteractablesDefinition = (
-		get_definition_at(cell)
+		get_definition_at(
+			head_cell
+		)
 	)
 
 	if definition == null:
@@ -708,11 +893,54 @@ func _on_snake_head_entered_cell(
 	if not definition.collect_on_contact:
 		return
 
-	_collect_interactable_at(cell)
+	_collect_interactable_at(
+		head_cell
+	)
+
+
+func _try_collect_nearby_garlic(
+	head_cell: Vector2i
+) -> void:
+	var garlic_cells: Array[Vector2i] = (
+		get_cells_for_id(
+			GARLIC_ID
+		)
+	)
+
+	for garlic_cell in garlic_cells:
+		if not _is_inside_garlic_radius(
+			head_cell,
+			garlic_cell
+		):
+			continue
+
+		_collect_interactable_at(
+			garlic_cell,
+			false
+		)
+
+		return
+
+
+func _is_inside_garlic_radius(
+	head_cell: Vector2i,
+	garlic_cell: Vector2i
+) -> bool:
+	var difference: Vector2i = (
+		head_cell - garlic_cell
+	)
+
+	var distance: int = maxi(
+		absi(difference.x),
+		absi(difference.y)
+	)
+
+	return distance <= garlic_activation_radius
 
 
 func _collect_interactable_at(
-	cell: Vector2i
+	cell: Vector2i,
+	spawn_replacement: bool = true
 ) -> bool:
 	if not _running:
 		return false
@@ -736,19 +964,30 @@ func _collect_interactable_at(
 		definition.lifetime_seconds > 0
 		and seconds_remaining <= 0
 	):
-		_remove_interactable_instance(cell)
+		_remove_interactable_instance(
+			cell
+		)
+
 		_maintain_spawn_targets()
 
 		return false
 
-	_remove_interactable_instance(cell)
+	_remove_interactable_instance(
+		cell
+	)
 
-	interactable_collected.emit(
+	if not spawn_replacement:
+		_spawn_enabled[
+			definition.interactable_id
+		] = false
+
+	EventBus.interactable_collected.emit(
 		definition,
 		seconds_remaining
 	)
 
-	_maintain_spawn_targets()
+	if spawn_replacement:
+		_maintain_spawn_targets()
 
 	return true
 
@@ -759,7 +998,10 @@ func _create_countdown_label(
 ) -> Label:
 	var countdown_label := Label.new()
 
-	countdown_label.text = str(seconds)
+	countdown_label.text = str(
+		seconds
+	)
+
 	countdown_label.visible = true
 
 	countdown_label.horizontal_alignment = (
@@ -794,7 +1036,10 @@ func _create_countdown_label(
 		6
 	)
 
-	var tile_size := Vector2(128.0, 128.0)
+	var tile_size := Vector2(
+		128.0,
+		128.0
+	)
 
 	if interactable_layer.tile_set != null:
 		tile_size = Vector2(
@@ -821,7 +1066,9 @@ func _create_countdown_label(
 
 	var interactable_center_global: Vector2 = (
 		interactable_layer.to_global(
-			interactable_layer.map_to_local(cell)
+			interactable_layer.map_to_local(
+				cell
+			)
 		)
 	)
 

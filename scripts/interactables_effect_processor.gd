@@ -2,30 +2,22 @@ class_name InteractableItemEffectProcessor
 extends Node
 
 
-@export_category("References")
-
-@export var interactable_spawner: InteractableSpawner
-@export var snake_controller: SnakeController
-
-
-func _ready() -> void:
-	if interactable_spawner == null:
-		push_error(
-			"InteractableItemEffectProcessor: "
-			+ "Interactable Spawner has not been assigned."
-		)
-		return
-
-	if snake_controller == null:
-		push_error(
-			"InteractableItemEffectProcessor: "
-			+ "Snake Controller has not been assigned."
-		)
-		return
-
-	interactable_spawner.interactable_collected.connect(
+func _enter_tree() -> void:
+	if not EventBus.interactable_collected.is_connected(
 		_on_interactable_collected
-	)
+	):
+		EventBus.interactable_collected.connect(
+			_on_interactable_collected
+		)
+
+
+func _exit_tree() -> void:
+	if EventBus.interactable_collected.is_connected(
+		_on_interactable_collected
+	):
+		EventBus.interactable_collected.disconnect(
+			_on_interactable_collected
+		)
 
 
 func _on_interactable_collected(
@@ -39,6 +31,9 @@ func _on_interactable_collected(
 				seconds_remaining
 			)
 
+		&"garlic":
+			_apply_garlic()
+
 		_:
 			print(
 				"No effect configured for: ",
@@ -50,23 +45,26 @@ func _apply_blood_orange(
 	definition: InteractablesDefinition,
 	seconds_remaining: int
 ) -> void:
-	var growth_amount: int = (
-		definition.get_growth_amount(
-			seconds_remaining
-		)
+	var growth_amount := definition.get_growth_amount(
+		seconds_remaining
 	)
 
 	if growth_amount <= 0:
 		return
 
-	snake_controller.add_growth(
+	EventBus.interaction_triggered_health_change.emit(
 		growth_amount
 	)
 
 	print(
 		"Blood orange collected with %d seconds left: +%d bat tiles"
-		% [
-			seconds_remaining,
-			growth_amount
-		]
+		% [seconds_remaining, growth_amount]
 	)
+
+
+func _apply_garlic() -> void:
+	EventBus.interaction_triggered_snake_speed_effect.emit(
+		EventBus.SnakeSpeedEffect.SLOW_DOWN
+	)
+
+	print("Garlic activated: snake slowed down.")
