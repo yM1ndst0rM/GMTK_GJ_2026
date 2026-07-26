@@ -1,5 +1,6 @@
 [gd_scene format=4 uid="uid://c6ad6i2cilsfw"]
 
+[ext_resource type="AudioStream" uid="uid://7j5jhwe5jqej" path="res://audio/Background_music.mp3" id="1_dinhu"]
 [ext_resource type="Script" uid="uid://duxlb5rtx12n" path="res://scripts/world_grid.gd" id="1_iywne"]
 [ext_resource type="TileSet" uid="uid://dorbpqtiir0c8" path="res://tilesets/environment.tres" id="2_0tnpc"]
 [ext_resource type="Script" uid="uid://0if06i3pwuue" path="res://scripts/snake_controller.gd" id="3_p57ef"]
@@ -11,13 +12,12 @@
 [ext_resource type="TileSet" uid="uid://byl6slysjbnvh" path="res://tilesets/interactables.tres" id="6_gee14"]
 [ext_resource type="Script" uid="uid://dsus4xjcn6por" path="res://scripts/game_manager.gd" id="6_p57ef"]
 [ext_resource type="Script" uid="uid://cp0eaksajpclj" path="res://scripts/snake_decay_timer.gd" id="8_gee14"]
-[ext_resource type="AudioStream" uid="uid://gv4wq4vhqnss" path="res://resources/GMTK Jam (2) Demo - V1.mp3" id="12_dinhu"]
 
 [node name="Game" type="Node2D" unique_id=1083209613]
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1084106167]
-stream = ExtResource("12_dinhu")
-volume_db = -3.887
+stream = ExtResource("1_dinhu")
+volume_db = -7.289
 autoplay = true
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1661928156]
@@ -53,7 +53,7 @@ script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
 starting_head_cell = Vector2i(6, 6)
-millis_per_move = 160
+millis_per_move = 240
 movement_timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
@@ -88,7 +88,7 @@ script = ExtResource("6_p57ef")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]
 script = ExtResource("8_gee14")
-decay_after_millis = 2400
+decay_after_millis = 5000
 countdown_update_interval_millis = 150
 
 [node name="DecayTimer" type="Timer" parent="SnakeDecay" unique_id=504727378]
