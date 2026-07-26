@@ -20,6 +20,7 @@
 [ext_resource type="Resource" uid="uid://bknbnqb7kg5v6" path="res://interactables/garlic.tres" id="11_trtic"]
 [ext_resource type="Script" uid="uid://b3u4cycm37621" path="res://scripts/interactables_effect_processor.gd" id="13_kvuet"]
 [ext_resource type="Script" uid="uid://dpho3ghr2d5f7" path="res://scripts/garlic_repulsion_system.gd" id="15_ir15t"]
+[ext_resource type="Script" uid="uid://cb20eo5cb7miq" path="res://scripts/gameover.gd" id="21_5newe"]
 
 [sub_resource type="GDScript" id="GDScript_bghhj"]
 script/source = "extends AudioStreamPlayer2D
@@ -171,3 +172,36 @@ script = ExtResource("13_kvuet")
 [node name="GarlicRepulsionSystem" type="Node" parent="." unique_id=1695820827 node_paths=PackedStringArray("interactable_spawner")]
 script = ExtResource("15_ir15t")
 interactable_spawner = NodePath("../InteractableSpawner")
+
+[node name="GameOver" type="CanvasLayer" parent="." unique_id=653087208 node_paths=PackedStringArray("win_condition_label", "restart_button")]
+script = ExtResource("21_5newe")
+win_condition_label = NodePath("win_condition_label")
+restart_button = NodePath("RestartButton")
+win_text = "The Count Wins!"
+lose_text = "You Have Been Vanquished"
+
+[node name="ColorRect" type="ColorRect" parent="GameOver" unique_id=1505106767]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="win_condition_label" type="Label" parent="GameOver" unique_id=645305963]
+custom_minimum_size = Vector2(800, 140)
+offset_left = 374.0
+offset_top = 136.0
+offset_right = 1174.0
+offset_bottom = 276.0
+theme_override_font_sizes/font_size = 96
+text = "YOU WIN!"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="GameOver" unique_id=1427860459]
+offset_left = 921.00006
+offset_top = 392.0
+offset_right = 986.00006
+offset_bottom = 423.0
+scale = Vector2(3, 3)
+text = "Restart"
