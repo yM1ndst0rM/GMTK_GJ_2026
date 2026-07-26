@@ -86,13 +86,49 @@ func clear_snake() -> void:
 
 
 func _pick_cell_source_id(type: Vector4i,  is_head: bool) -> int:
-	return source_id
+	return 0
 	
 func _pick_cell_atlas_coords(type: Vector4i,  is_head: bool) -> Vector2i:
+	var going_to: Vector2i = Vector2i(type.z, type.w)
+	var coming_in_direction: Vector2i = Vector2i(type.x, type.y)
+	
 	if is_head:
-		return head_atlas_coordinates
+		if going_to == Vector2i.DOWN: return Vector2i(0 , 1)
+		if going_to == Vector2i.LEFT: return Vector2i(0, 2)
+		if going_to == Vector2i.RIGHT: return Vector2i(0, 2)
+		if going_to == Vector2i.UP: return Vector2i(0, 3)
 	else:
-		return body_atlas_coordinates
+		if coming_in_direction == going_to: return Vector2i(0, 0)
+		else: return Vector2i(0 ,4)
+	
+	return Vector2i.ZERO
 	
 func _pick_alternate_tile(type: Vector4i, is_head: bool) -> int:
+	var coming_in_direction: Vector2i = Vector2i(type.x, type.y)
+	var going_to: Vector2i = Vector2i(type.z, type.w)
+	
+	if is_head:
+		if going_to == Vector2i.DOWN: return 0
+		if going_to == Vector2i.LEFT: return 0 
+		if going_to == Vector2i.RIGHT: return 1
+		if going_to == Vector2i.UP: return 0 
+		
+	else:
+		if coming_in_direction == going_to:
+			if going_to == Vector2i.DOWN: return 2
+			if going_to == Vector2i.LEFT: return 3
+			if going_to == Vector2i.RIGHT: return 1
+			if going_to == Vector2i.UP: return 0
+			
+		else:
+			if coming_in_direction == Vector2i.UP && going_to == Vector2i.LEFT: return 0
+			if coming_in_direction == Vector2i.RIGHT && going_to == Vector2i.UP: return 1
+			if coming_in_direction == Vector2i.DOWN && going_to == Vector2i.RIGHT: return 2
+			if coming_in_direction == Vector2i.LEFT && going_to == Vector2i.DOWN: return 3
+			if coming_in_direction == Vector2i.UP && going_to == Vector2i.RIGHT: return 4
+			if coming_in_direction == Vector2i.LEFT && going_to == Vector2i.UP: return 5
+			if coming_in_direction == Vector2i.DOWN && going_to == Vector2i.LEFT: return 6
+			if coming_in_direction == Vector2i.RIGHT && going_to == Vector2i.DOWN: return 7
+
+
 	return 0

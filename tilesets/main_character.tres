@@ -6,6 +6,7 @@
 texture = ExtResource("1_crcnt")
 texture_region_size = Vector2i(128, 128)
 0:0/next_alternative_id = 4
+0:0/animation_mode = 1
 0:0/animation_frame_0/duration = 1.0
 0:0/animation_frame_1/duration = 1.0
 0:0/animation_frame_2/duration = 1.0
@@ -71,11 +72,7 @@ texture_region_size = Vector2i(128, 128)
 0:3/0/terrain_set = 0
 0:3/0/terrains_peering_bit/bottom_right_corner = 0
 0:3/0/terrains_peering_bit/bottom_side = 0
-0:4/next_alternative_id = 4
-0:4/animation_frame_0/duration = 1.0
-0:4/animation_frame_1/duration = 1.0
-0:4/animation_frame_2/duration = 1.0
-0:4/animation_frame_3/duration = 1.0
+0:4/next_alternative_id = 8
 0:4/0 = 0
 0:4/0/terrain_set = 0
 0:4/0/terrains_peering_bit/bottom_right_corner = 0
@@ -103,6 +100,16 @@ texture_region_size = Vector2i(128, 128)
 0:4/3/terrains_peering_bit/left_side = 0
 0:4/3/terrains_peering_bit/top_left_corner = 0
 0:4/3/terrains_peering_bit/top_side = 0
+0:4/4 = 4
+0:4/4/flip_h = true
+0:4/5 = 5
+0:4/5/transpose = true
+0:4/6 = 6
+0:4/6/flip_v = true
+0:4/7 = 7
+0:4/7/flip_h = true
+0:4/7/flip_v = true
+0:4/7/transpose = true
 
 [resource]
 tile_size = Vector2i(128, 128)
