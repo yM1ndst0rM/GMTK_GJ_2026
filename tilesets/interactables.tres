@@ -4,7 +4,12 @@
 [ext_resource type="Texture2D" uid="uid://dhy4h4ookba0w" path="res://assets/tilemaps/interactables/holy water.png" id="2_w2o5w"]
 [ext_resource type="Texture2D" uid="uid://tev53mq3k2w5" path="res://assets/tilemaps/interactables/town.png" id="3_6iqns"]
 [ext_resource type="Texture2D" uid="uid://cy1y4smvdjkpj" path="res://assets/tilemaps/interactables/ash pile.png" id="4_6iqns"]
+[ext_resource type="Texture2D" uid="uid://c17mxu3r347mb" path="res://assets/tilemaps/interactables/town captured.png" id="4_ixoqf"]
 [ext_resource type="Texture2D" uid="uid://2p1m53ov765k" path="res://assets/tilemaps/interactables/bloodorange.png" id="4_w2o5w"]
+[ext_resource type="Texture2D" uid="uid://cqeglfylo8whg" path="res://assets/tilemaps/interactables/cross section.png" id="6_7rmxp"]
+[ext_resource type="Texture2D" uid="uid://dri1k8paa2nbc" path="res://assets/tilemaps/interactables/road curve.png" id="8_0siom"]
+[ext_resource type="Texture2D" uid="uid://bh5dy78ifykoo" path="res://assets/tilemaps/interactables/straight road.png" id="9_8nidy"]
+[ext_resource type="Texture2D" uid="uid://b4sxjdsydfji2" path="res://assets/tilemaps/interactables/t junction.png" id="10_qy73l"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_t50vr"]
 texture = ExtResource("1_5wojs")
@@ -24,13 +29,38 @@ texture_region_size = Vector2i(128, 128)
 0:0/0/custom_data_0 = true
 0:0/0/custom_data_1 = true
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5gnf2"]
+texture = ExtResource("4_ixoqf")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hn0nw"]
 texture = ExtResource("4_6iqns")
 texture_region_size = Vector2i(128, 128)
 0:0/0 = 0
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_kb8xa"]
+texture = ExtResource("6_7rmxp")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6iqns"]
 texture = ExtResource("4_w2o5w")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_d7dnv"]
+texture = ExtResource("8_0siom")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wjo82"]
+texture = ExtResource("9_8nidy")
+texture_region_size = Vector2i(128, 128)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_lhtdf"]
+texture = ExtResource("10_qy73l")
 texture_region_size = Vector2i(128, 128)
 0:0/0 = 0
 
@@ -47,3 +77,8 @@ sources/1 = SubResource("TileSetAtlasSource_u3qhg")
 sources/2 = SubResource("TileSetAtlasSource_vwvml")
 sources/6 = SubResource("TileSetAtlasSource_6iqns")
 sources/4 = SubResource("TileSetAtlasSource_hn0nw")
+sources/3 = SubResource("TileSetAtlasSource_5gnf2")
+sources/5 = SubResource("TileSetAtlasSource_kb8xa")
+sources/7 = SubResource("TileSetAtlasSource_d7dnv")
+sources/8 = SubResource("TileSetAtlasSource_wjo82")
+sources/9 = SubResource("TileSetAtlasSource_lhtdf")
