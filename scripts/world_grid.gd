@@ -75,6 +75,8 @@ func is_blocked(cell: Vector2i) -> bool:
 
 	return blocked_cells.has(cell)
 
+func calculate_captured_area(player_occupied_cells: Array[Vector2i])  -> Dictionary[Vector2i, bool]:
+	return CapturedCellsCalculator.get_all_captured_cells($GroundLayer, player_occupied_cells)
 
 func add_blocked_cell(cell: Vector2i) -> void:
 	if is_inside_world(cell):
