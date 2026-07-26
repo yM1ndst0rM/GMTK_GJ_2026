@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://gv4wq4vhqnss"
+path="res://.godot/imported/GMTK Jam (2) Demo - V1.mp3-c24d487e463c396738b818e64eb86248.mp3str"
+
+[deps]
+
+source_file="res://resources/GMTK Jam (2) Demo - V1.mp3"
+dest_files=["res://.godot/imported/GMTK Jam (2) Demo - V1.mp3-c24d487e463c396738b818e64eb86248.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

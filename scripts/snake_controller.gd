@@ -1,24 +1,12 @@
 class_name SnakeController
 extends Node
 
-
 const MILLIS_IN_SECOND: float = 1000.0
-
-
-signal snake_crashed
-signal head_entered_cell(cell: Vector2i)
-signal snake_moved(head_cell: Vector2i)
-signal snake_length_changed(new_length: int)
-
-var _movement_time_multipliers: Dictionary = {}
-@export var garlic_repulsion_system: GarlicRepulsionSystem
 
 @export_category("References")
 
 @export var world_grid: WorldGrid
 @export var snake_renderer: SnakeRenderer
-@export var movement_timer: Timer
-
 
 @export_category("Snake Length")
 
@@ -26,6 +14,8 @@ var _movement_time_multipliers: Dictionary = {}
 @export_range(1, 100, 1)
 var minimum_snake_length: int = 1
 
+@export_range(1, 100, 1)
+var starting_snake_length: int = 5
 
 @export_category("Starting Position")
 
@@ -38,6 +28,8 @@ var minimum_snake_length: int = 1
 var millis_per_move: int = 150
 
 
+@export var movement_timer: Timer
+
 var _snake_cells: Array[Vector2i] = []
 
 # Used like a HashSet for fast self-collision checks.
@@ -48,9 +40,28 @@ var _queued_direction: Vector2i = Vector2i.RIGHT
 
 var _movement_enabled: bool = false
 
-# Each point prevents the tail from moving for one movement.
-var _pending_growth: int = 0
+var _captured_cells: Dictionary[Vector2i,  bool] = {}
+var _current_health_change: int  = 0
 
+func _enter_tree() -> void:
+	if !EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.connect(_on_game_started)
+	
+	if !EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.connect(_on_game_ended)
+		
+	if !EventBus.interaction_triggered_health_change.is_connected(_on_health_change_interaction):
+		EventBus.interaction_triggered_health_change.connect(_on_health_change_interaction)
+
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.disconnect(_on_game_started)
+
+	if EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.disconnect(_on_game_ended)
+		
+	if EventBus.interaction_triggered_health_change.is_connected(_on_health_change_interaction):
+		EventBus.interaction_triggered_health_change.disconnect(_on_health_change_interaction)
 
 func _ready() -> void:
 	if world_grid == null:
@@ -63,23 +74,12 @@ func _ready() -> void:
 			"SnakeController: Snake Renderer has not been assigned."
 		)
 
-	if movement_timer == null:
-		push_error(
-			"SnakeController: Movement Timer has not been assigned."
-		)
-		return
 
-	movement_timer.wait_time = (
-		millis_per_move / MILLIS_IN_SECOND
-	)
-
+	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
 	movement_timer.one_shot = false
 	movement_timer.autostart = false
 
-	movement_timer.timeout.connect(
-		_on_movement_timer_timeout
-	)
-
+	movement_timer.timeout.connect(_on_movement_timer_timeout)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _movement_enabled:
@@ -101,42 +101,31 @@ func _unhandled_input(event: InputEvent) -> void:
 func reset_snake() -> bool:
 	set_movement_enabled(false)
 
-	var starting_cells: Array[Vector2i] = [
-		starting_head_cell,
-		starting_head_cell + Vector2i.LEFT,
-		starting_head_cell + Vector2i.LEFT * 2,
-		starting_head_cell + Vector2i.LEFT * 3,
-		starting_head_cell + Vector2i.LEFT * 4,
-		starting_head_cell + Vector2i.LEFT * 5
-	]
+   # Should hopefully never happen... but just in case. 
+	if world_grid.is_blocked(starting_head_cell):
+		EventBus.unrecoverable_error_encountered.emit(
+			"SnakeController: Starting cell %s is blocked."
+			% starting_head_cell
+		)
 
-	for cell in starting_cells:
-		if world_grid.is_blocked(cell):
-			push_error(
-				"SnakeController: Starting cell %s is blocked."
-				% cell
-			)
-
-			return false
+		return false
 
 	_snake_cells.clear()
 	_occupied_cells.clear()
 
-	for cell in starting_cells:
-		_snake_cells.append(cell)
-		_occupied_cells[cell] = true
+	_snake_cells.append(starting_head_cell)
+	_occupied_cells[starting_head_cell] = true
 
 	_direction = Vector2i.RIGHT
 	_queued_direction = Vector2i.RIGHT
-	_pending_growth = 0
 
-	snake_renderer.draw_snake(
+	_current_health_change += starting_snake_length
+
+	snake_renderer.draw_initial_snake(
 		_snake_cells
 	)
 
-	snake_length_changed.emit(
-		_snake_cells.size()
-	)
+	_update_captured_cells()
 
 	return true
 
@@ -145,7 +134,7 @@ func set_movement_enabled(enabled: bool) -> void:
 	_movement_enabled = enabled
 
 	if enabled:
-		_refresh_movement_wait_time()
+		movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
 		movement_timer.start()
 	else:
 		movement_timer.stop()
@@ -155,15 +144,13 @@ func is_movement_enabled() -> bool:
 	return _movement_enabled
 
 
-func set_movement_speed(
-	new_millis_per_move: int
-) -> void:
+func set_movement_speed(new_millis_per_move: int) -> void:
 	millis_per_move = maxi(
 		new_millis_per_move,
 		50
 	)
 
-	_refresh_movement_wait_time()
+	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
 
 
 func get_snake_cells() -> Array[Vector2i]:
@@ -184,20 +171,6 @@ func occupies_cell(cell: Vector2i) -> bool:
 	return _occupied_cells.has(cell)
 
 
-func add_growth(amount: int) -> void:
-	if amount <= 0:
-		return
-
-	_pending_growth += amount
-
-	print(
-		"Snake growth queued: ",
-		amount,
-		". Total pending: ",
-		_pending_growth
-	)
-
-
 func _on_movement_timer_timeout() -> void:
 	if not _movement_enabled:
 		return
@@ -205,9 +178,7 @@ func _on_movement_timer_timeout() -> void:
 	_move_snake()
 
 
-func _queue_direction(
-	new_direction: Vector2i
-) -> void:
+func _queue_direction(new_direction: Vector2i) -> void:
 	# Do not allow an immediate 180-degree turn.
 	if new_direction == -_direction:
 		return
@@ -220,115 +191,69 @@ func _move_snake() -> void:
 		return
 
 	_direction = _queued_direction
-	
-	
 
-	var next_head: Vector2i = (
-		_snake_cells[0] + _direction
-	)
-	
-	if (
-		garlic_repulsion_system != null
-		and garlic_repulsion_system.would_repel(
-			next_head
-		)
-	):
-		var forced_direction: Vector2i = (
-			garlic_repulsion_system.trigger_repulsion(
-				_snake_cells[0],
-				next_head,
-				_direction
-			)
-		)
+	var previous_head: Vector2i = _snake_cells[0]
+	var next_head: Vector2i = previous_head + _direction
 
-		# Triggering the garlic removes one bat.
-		if not remove_tail_segment():
-			_crash()
-			return
-
-		# The garlic has already been removed at this point.
-		# If there is no valid push direction, skip this move.
-		if forced_direction == Vector2i.ZERO:
-			return
-
-		_direction = forced_direction
-		_queued_direction = forced_direction
-
-		next_head = (
-			_snake_cells[0]
-			+ forced_direction
-		)
 
 	if world_grid.is_blocked(next_head):
 		_crash()
 		return
 
-	# Before entering the cell, only already-queued growth
-	# determines whether the current tail will remain.
-	var tail_will_remain: bool = (
-		_pending_growth > 0
-	)
-
-	if _hits_self(next_head, tail_will_remain):
+	if _hits_self(next_head, _current_health_change > 0):
 		_crash()
 		return
 
-	# Add the new head first.
-	_snake_cells.push_front(next_head)
-	_occupied_cells[next_head] = true
+	var removed_tail := Vector2i.ZERO
+	var remove_tail := false
 
-	# InteractableSpawner listens for this signal.
-	#
-	# When the entered cell contains a blood orange:
-	# 1. InteractableSpawner removes it.
-	# 2. InteractableSpawner emits interactable_collected.
-	# 3. InteractableEffectProcessor calls add_growth().
-	#
-	# Signal callbacks happen before this function continues,
-	# so _pending_growth will be updated below.
-	head_entered_cell.emit(next_head)
-
-	var grew_this_move: bool = (
-		_pending_growth > 0
-	)
-
-	if grew_this_move:
-		_pending_growth -= 1
+	if _current_health_change > 0:
+		_snake_cells.push_front(next_head)
+		_occupied_cells[next_head] = true
+		_current_health_change -= 1
+		EventBus.snake_health_changed.emit(get_health() - 1, get_health())
+		
 	else:
-		var removed_tail: Vector2i = (
-			_snake_cells.pop_back()
-		)
+		removed_tail = _snake_cells.pop_back()
+		remove_tail = true
 
-		# Protect the new head if it entered the cell
-		# that the old tail was vacating.
-		if removed_tail != next_head:
-			_occupied_cells.erase(removed_tail)
+		_occupied_cells.erase(removed_tail)
 
-	snake_renderer.draw_snake(
-		_snake_cells
+		_snake_cells.push_front(next_head)
+		_occupied_cells[next_head] = true
+
+	snake_renderer.apply_move(
+		next_head,
+		previous_head,
+		removed_tail,
+		remove_tail
 	)
 
-	if grew_this_move:
-		snake_length_changed.emit(
-			_snake_cells.size()
-		)
+	EventBus.snake_moved.emit(previous_head, next_head, get_snake_cells())
+		
+	_update_captured_cells()
 
-	snake_moved.emit(next_head)
-
+func _on_health_change_interaction(delta_health: int):
+	_current_health_change += delta_health
+	#if we have a negative health interaction, we remove segements instantly, otherwise
+	# new segments will be added on every move, so the snake grows gradually
+	
+	while not _current_health_change >= 0:
+		_current_health_change += 1
+		remove_tail_segment()
+		
 
 func _hits_self(
 	next_head: Vector2i,
-	tail_will_remain: bool
+	will_grow: bool
 ) -> bool:
 	if not _occupied_cells.has(next_head):
 		return false
 
-	# The snake may enter the current tail cell when
-	# that tail will leave during this movement.
-	if not tail_will_remain:
-		var tail_cell: Vector2i = (
-			_snake_cells.back()
-		)
+	# The snake may enter its current tail cell when that
+	# tail is leaving during the same movement.
+	if not will_grow:
+		var tail_cell: Vector2i = _snake_cells.back()
 
 		if next_head == tail_cell:
 			return false
@@ -338,76 +263,39 @@ func _hits_self(
 
 func _crash() -> void:
 	set_movement_enabled(false)
-	snake_crashed.emit()
+	EventBus.snake_health_changed.emit(get_health(), 0)
+	
+func remove_tail_segment() :
+	if get_health() > 0:
+		var removed_tail: Vector2i = _snake_cells.pop_back()
 
-
-func remove_tail_segment() -> bool:
-	if _snake_cells.size() <= minimum_snake_length:
-		return false
-
-	var removed_tail: Vector2i = (
-		_snake_cells.pop_back()
-	)
-
-	_occupied_cells.erase(removed_tail)
-
-	snake_renderer.draw_snake(
-		_snake_cells
-	)
-
-	snake_length_changed.emit(
-		_snake_cells.size()
-	)
-
-	return true
+		_occupied_cells.erase(removed_tail)
+		snake_renderer.erase_segment(removed_tail)
+		EventBus.snake_health_changed.emit(get_health() + 1, get_health())
 
 
 func get_snake_length() -> int:
 	return _snake_cells.size()
 
+func get_health() -> int:
+	return maxi(_snake_cells.size() - minimum_snake_length, 0)
 
 func can_remove_tail_segment() -> bool:
-	return (
-		_snake_cells.size()
-		> minimum_snake_length
-	)
+	return _snake_cells.size() > minimum_snake_length
 
-func set_movement_time_multiplier(
-	source: StringName,
-	multiplier: float
-) -> void:
-	_movement_time_multipliers[source] = maxf(
-		multiplier,
-		0.05
-	)
-
-	_refresh_movement_wait_time()
-
-
-func remove_movement_time_multiplier(
-	source: StringName
-) -> void:
-	_movement_time_multipliers.erase(source)
-	_refresh_movement_wait_time()
-
-
-func _get_effective_millis_per_move() -> int:
-	var effective_millis := float(
-		millis_per_move
-	)
-
-	for multiplier_value in (
-		_movement_time_multipliers.values()
-	):
-		effective_millis *= float(
-			multiplier_value
-		)
-
-	return roundi(effective_millis)
-
-
-func _refresh_movement_wait_time() -> void:
-	movement_timer.wait_time = (
-		_get_effective_millis_per_move()
-		/ MILLIS_IN_SECOND
-	)
+func _on_game_started():
+	var success: bool = reset_snake()
+	set_movement_enabled(true)
+	if !success:
+		EventBus.unrecoverable_error_encountered.emit("Snake initialization failed")
+		
+func _on_game_ended(is_won: bool):
+	set_movement_enabled(false)
+		
+func _update_captured_cells():
+	var captured_cells: Dictionary[Vector2i, bool] = world_grid.calculate_captured_area(get_snake_cells())
+	if captured_cells.size() != _captured_cells.size() || !captured_cells.has_all(_captured_cells.keys()):
+		_captured_cells.clear()
+		_captured_cells.merge(captured_cells)
+		EventBus.snake_captured_area_changed.emit(captured_cells.keys())
+		

@@ -1,11 +1,9 @@
 class_name SnakeDecayTimer
 extends Node
 
-var _decay_interval_overrides: Dictionary = {}
 const MILLIS_IN_SECOND = 1000.0
 const SECONDS_IN_MINUTE = 60.0
 
-signal decay_time_expired
 signal countdown_updated(millis_remaining: int)
 
 
@@ -25,6 +23,20 @@ var countdown_update_interval_millis: int = 100
 
 var _countdown_update_accumulator: float = 0.0
 var _running: bool = false
+
+func _enter_tree() -> void:
+	if !EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.connect(_on_game_started)
+	
+	if !EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.connect(_on_game_ended)
+
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.disconnect(_on_game_started)
+	
+	if EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.disconnect(_on_game_ended)
 
 
 func _ready() -> void:
@@ -50,15 +62,17 @@ func _process(delta: float) -> void:
 		get_millis_remaining()
 	)
 
+func _on_game_started():
+	start_countdown()
+	
+func _on_game_ended(_ignored_):
+	stop_countdown()
 
 func start_countdown() -> void:
 	_running = true
 	_countdown_update_accumulator = 0.0
 
-	decay_timer.wait_time = (
-		_get_effective_decay_millis()
-		/ MILLIS_IN_SECOND
-	)
+	decay_timer.wait_time = get_decay_after_millis() / MILLIS_IN_SECOND
 	decay_timer.start()
 
 	set_process(true)
@@ -136,48 +150,4 @@ func _on_decay_timer_timeout() -> void:
 	if not _running:
 		return
 
-	decay_time_expired.emit()
-	
-func set_decay_interval_override(
-	source: StringName,
-	millis: int
-) -> void:
-	_decay_interval_overrides[source] = maxi(
-		millis,
-		50
-	)
-
-	_refresh_decay_timer()
-
-
-func remove_decay_interval_override(
-	source: StringName
-) -> void:
-	_decay_interval_overrides.erase(source)
-	_refresh_decay_timer()
-
-
-func _get_effective_decay_millis() -> int:
-	var effective_millis := decay_after_millis
-
-	for override_value in (
-		_decay_interval_overrides.values()
-	):
-		effective_millis = mini(
-			effective_millis,
-			int(override_value)
-		)
-
-	return effective_millis
-
-
-func _refresh_decay_timer() -> void:
-	if not _running:
-		return
-
-	decay_timer.wait_time = (
-		_get_effective_decay_millis()
-		/ MILLIS_IN_SECOND
-	)
-
-	decay_timer.start()
+	EventBus.interaction_triggered_health_change.emit(-1)
