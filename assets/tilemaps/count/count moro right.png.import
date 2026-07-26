@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c2l1ubb7ak0ei"
-path="res://.godot/imported/Ground3.png-f37cc06f9eb460f592a4b7a16f0c5d9c.ctex"
+uid="uid://cq1047b6mbdv1"
+path="res://.godot/imported/count moro right.png-62baf2b130e0babd9784f9582ba157c2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/tilemaps/environment/Ground3.png"
-dest_files=["res://.godot/imported/Ground3.png-f37cc06f9eb460f592a4b7a16f0c5d9c.ctex"]
+source_file="res://assets/tilemaps/count/count moro right.png"
+dest_files=["res://.godot/imported/count moro right.png-62baf2b130e0babd9784f9582ba157c2.ctex"]
 
 [params]
 
