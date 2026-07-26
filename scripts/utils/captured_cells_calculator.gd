@@ -42,6 +42,3 @@ static func _save_cell_and_neighbours(cell: Vector2i, targetLayer: TileMapLayer,
 		_save_cell_and_neighbours(surr_cell, targetLayer, player_occupied_cells)
 	
 	
-
-
-
