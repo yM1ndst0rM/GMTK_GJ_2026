@@ -5,11 +5,13 @@
 [resource]
 script = ExtResource("1_aryia")
 interactable_id = &"garlic"
-initial_spawn_delay_seconds = 8.0
+initial_spawn_delay_seconds = 3.0
 minimum_distance_from_snake = 6
 maximum_active = 3
 minimum_spawn_radius = 1
 maximum_spawn_radius = 3
+lifetime_seconds = 4
+show_countdown = true
 contributes_to_growth = false
 collect_on_contact = false
 spawn_origin = 1

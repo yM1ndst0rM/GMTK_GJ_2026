@@ -1,8 +1,10 @@
 [gd_scene format=4 uid="uid://c6ad6i2cilsfw"]
 
+[ext_resource type="AudioStream" uid="uid://bkil3do3gmvv0" path="res://audio/Bat_leaving.mp3" id="1_1kice"]
 [ext_resource type="AudioStream" uid="uid://7j5jhwe5jqej" path="res://audio/Background_music.mp3" id="1_dinhu"]
 [ext_resource type="Script" uid="uid://duxlb5rtx12n" path="res://scripts/world_grid.gd" id="1_iywne"]
 [ext_resource type="TileSet" uid="uid://dorbpqtiir0c8" path="res://tilesets/environment.tres" id="2_0tnpc"]
+[ext_resource type="AudioStream" uid="uid://cfi6p5yyre7dh" path="res://audio/Orange_eaten.mp3" id="2_5newe"]
 [ext_resource type="Script" uid="uid://q01q8tmw6op7" path="res://scenes/audio_stream_player_2d.gd" id="2_kvuet"]
 [ext_resource type="Script" uid="uid://0if06i3pwuue" path="res://scripts/snake_controller.gd" id="3_p57ef"]
 [ext_resource type="Script" uid="uid://crosx057sjl0k" path="res://scripts/villager_controller.gd" id="3_vtaks"]
@@ -19,7 +21,66 @@
 [ext_resource type="Script" uid="uid://b3u4cycm37621" path="res://scripts/interactables_effect_processor.gd" id="13_kvuet"]
 [ext_resource type="Script" uid="uid://dpho3ghr2d5f7" path="res://scripts/garlic_repulsion_system.gd" id="15_ir15t"]
 
+[sub_resource type="GDScript" id="GDScript_bghhj"]
+script/source = "extends AudioStreamPlayer2D
+
+
+func start_music(old_health: int, health: int) -> void:
+	if old_health > health:
+		play()
+func stop_music(old_health: int, health: int) -> void:
+	stop()
+func _enter_tree() -> void:
+	if !EventBus.snake_health_changed.is_connected(start_music):
+		EventBus.snake_health_changed.connect(start_music)
+	
+	if !EventBus.game_ended.is_connected(stop_music):
+		EventBus.game_ended.connect(stop_music)
+		
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(start_music):
+		EventBus.game_started.disconnect(start_music)
+	
+	if EventBus.game_ended.is_connected(stop_music):
+		EventBus.game_ended.disconnect(stop_music)
+"
+
+[sub_resource type="GDScript" id="GDScript_jsphu"]
+script/source = "extends AudioStreamPlayer2D
+
+
+func start_music(health_change: int) -> void:
+	if health_change >= 1:
+		play()
+func stop_music(health_change: int) -> void:
+	stop()
+func _enter_tree() -> void:
+	if !EventBus.interaction_triggered_health_change.is_connected(start_music):
+		EventBus.interaction_triggered_health_change.connect(start_music)
+	
+	if !EventBus.game_ended.is_connected(stop_music):
+		EventBus.game_ended.connect(stop_music)
+		
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(start_music):
+		EventBus.game_started.disconnect(start_music)
+	
+	if EventBus.game_ended.is_connected(stop_music):
+		EventBus.game_ended.disconnect(stop_music)
+"
+
 [node name="Game" type="Node2D" unique_id=1083209613]
+
+[node name="Bat_Sound" type="AudioStreamPlayer2D" parent="." unique_id=191779469]
+stream = ExtResource("1_1kice")
+volume_db = -4.86
+pitch_scale = 1.56
+script = SubResource("GDScript_bghhj")
+
+[node name="Orange_Eaten" type="AudioStreamPlayer2D" parent="." unique_id=383144847]
+stream = ExtResource("2_5newe")
+volume_db = -2.986
+script = SubResource("GDScript_jsphu")
 
 [node name="BG_Music" type="AudioStreamPlayer2D" parent="." unique_id=1084106167]
 stream = ExtResource("1_dinhu")
