@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="InteractablesDefinition" format=3 uid="uid://bvj1cqrmql1jh"]
+
+[ext_resource type="Script" uid="uid://5cmyjvn3mfel" path="res://scripts/interactables_definition.gd" id="1_0a4bh"]
+
+[resource]
+script = ExtResource("1_0a4bh")
+interactable_id = &"blood_orange"
+source_id = 6
+minimum_distance_from_snake = 1
+maximum_active = 5
+minimum_spawn_radius = 5
+lifetime_seconds = 7
+show_countdown = true
+metadata/_custom_type_script = "uid://5cmyjvn3mfel"
