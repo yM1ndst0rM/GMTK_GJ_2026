@@ -125,11 +125,12 @@ func reset_snake() -> bool:
 
 	_current_health_change += starting_snake_length
 
-	snake_renderer.draw_initial_snake(
+	snake_renderer.draw_snake(
 		_snake_cells
 	)
 
 	_update_captured_cells()
+	_emit_snake_state()
 
 	return true
 
@@ -147,6 +148,12 @@ func set_movement_enabled(enabled: bool) -> void:
 func is_movement_enabled() -> bool:
 	return _movement_enabled
 
+
+func _emit_snake_state() -> void:
+	EventBus.snake_state_changed.emit(
+		get_head_cell(),
+		get_snake_cells()
+	)
 
 func _set_up_movement_timer(time_scale: float = 1):
 	movement_timer.wait_time = (millis_per_move / MILLIS_IN_SECOND) * time_scale
@@ -247,15 +254,12 @@ func _move_snake() -> void:
 		_snake_cells.push_front(next_head)
 		_occupied_cells[next_head] = true
 
-	snake_renderer.apply_move(
-		next_head,
-		previous_head,
-		removed_tail,
-		remove_tail
+	snake_renderer.draw_snake(
+		_snake_cells
 	)
 
 	EventBus.snake_moved.emit(previous_head, next_head, get_snake_cells())
-		
+	_emit_snake_state()
 	_update_captured_cells()
 
 func _on_health_change_interaction(delta_health: int):
@@ -298,14 +302,27 @@ func _crash() -> void:
 	set_movement_enabled(false)
 	EventBus.snake_health_changed.emit(get_health(), 0)
 	
-func remove_tail_segment() :
-	if get_health() > 0:
-		var removed_tail: Vector2i = _snake_cells.pop_back()
+func remove_tail_segment() -> void:
+	if get_health() <= 0:
+		return
 
-		_occupied_cells.erase(removed_tail)
-		snake_renderer.erase_segment(removed_tail)
-		EventBus.snake_health_changed.emit(get_health() + 1, get_health())
+	var old_health: int = get_health()
+	var removed_tail: Vector2i = _snake_cells.pop_back()
 
+	_occupied_cells.erase(removed_tail)
+
+	# SnakeRenderer redraws the complete snake.
+	snake_renderer.draw_snake(
+		_snake_cells
+	)
+
+	EventBus.snake_health_changed.emit(
+		old_health,
+		get_health()
+	)
+
+	_emit_snake_state()
+	_update_captured_cells()
 
 func get_snake_length() -> int:
 	return _snake_cells.size()
