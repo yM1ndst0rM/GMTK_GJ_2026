@@ -4,7 +4,6 @@ extends Node
 const MILLIS_IN_SECOND = 1000.0
 const SECONDS_IN_MINUTE = 60.0
 
-signal decay_time_expired
 signal countdown_updated(millis_remaining: int)
 
 
@@ -24,6 +23,20 @@ var countdown_update_interval_millis: int = 100
 
 var _countdown_update_accumulator: float = 0.0
 var _running: bool = false
+
+func _enter_tree() -> void:
+	if !EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.connect(_on_game_started)
+	
+	if !EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.connect(_on_game_ended)
+
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(_on_game_started):
+		EventBus.game_started.disconnect(_on_game_started)
+	
+	if EventBus.game_ended.is_connected(_on_game_ended):
+		EventBus.game_ended.disconnect(_on_game_ended)
 
 
 func _ready() -> void:
@@ -49,6 +62,11 @@ func _process(delta: float) -> void:
 		get_millis_remaining()
 	)
 
+func _on_game_started():
+	start_countdown()
+	
+func _on_game_ended(_ignored_):
+	stop_countdown()
 
 func start_countdown() -> void:
 	_running = true
@@ -132,4 +150,4 @@ func _on_decay_timer_timeout() -> void:
 	if not _running:
 		return
 
-	decay_time_expired.emit()
+	EventBus.interaction_triggered_health_change.emit(-1)
