@@ -58,9 +58,9 @@ metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
-movement_timer = NodePath("Timer")
 starting_head_cell = Vector2i(6, 6)
 millis_per_move = 170
+movement_timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
 wait_time = 0.15
@@ -76,11 +76,9 @@ z_index = 3
 tile_set = ExtResource("6_0tnpc")
 navigation_enabled = false
 
-[node name="InteractableSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "snake_controller", "villager_controller", "interactable_layer", "countdown_labels", "second_timer")]
+[node name="InteractableSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "interactable_layer", "countdown_labels", "second_timer")]
 script = ExtResource("5_gee14")
 world_grid = NodePath("../WorldGrid")
-snake_controller = NodePath("../SnakeController")
-villager_controller = NodePath("../WorldGrid/VillagerController")
 interactable_layer = NodePath("InteractableItemLayer")
 countdown_labels = NodePath("CountdownLabels")
 second_timer = NodePath("SecondTimer")
