@@ -27,7 +27,7 @@ tile_set = ExtResource("2_0tnpc")
 collision_enabled = false
 navigation_enabled = false
 
-[node name="VillagerController" type="TileMapLayer" parent="WorldGrid" unique_id=1732355104]
+[node name="VillagerController" type="Node" parent="WorldGrid" unique_id=205584260]
 script = ExtResource("3_vtaks")
 metadata/_custom_type_script = "uid://crosx057sjl0k"
 
@@ -78,7 +78,7 @@ script = ExtResource("6_p57ef")
 snake_decay_timer = NodePath("../SnakeDecay")
 snake_controller = NodePath("../SnakeController")
 food_spawner = NodePath("../FoodSpawner")
-environment_layer = NodePath("../WorldGrid/VillagerController/InteractablesLayer")
+environment_layer = NodePath("../WorldGrid/GroundLayer")
 villager_controller = NodePath("../WorldGrid/VillagerController")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]

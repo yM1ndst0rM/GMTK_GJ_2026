@@ -161,8 +161,8 @@ func _process(delta: float) -> void:
 	var vills: Array[Vector2i] = villager_controller.get_all_villagers()
 	for cell in captured_cells:
 		if vills.has(cell):
-			call_deferred(villager_controller.kill_villager(cell))
-	
+			villager_controller.kill_villager_on(cell)
+
 func _on_villager_died():
 	var villCount:int = villager_controller.get_all_villagers().size()
 	if villCount == 0:
