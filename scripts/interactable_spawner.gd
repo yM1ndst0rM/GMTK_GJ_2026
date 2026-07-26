@@ -902,9 +902,7 @@ func _try_collect_nearby_garlic(
 	head_cell: Vector2i
 ) -> void:
 	var garlic_cells: Array[Vector2i] = (
-		get_cells_for_id(
-			GARLIC_ID
-		)
+		get_cells_for_id(GARLIC_ID)
 	)
 
 	for garlic_cell in garlic_cells:
@@ -914,13 +912,17 @@ func _try_collect_nearby_garlic(
 		):
 			continue
 
-		_collect_interactable_at(
-			garlic_cell,
-			false
+		var instance: InteractableInstance = (
+			_active_interactable[garlic_cell]
+		)
+
+		# Emit the effect without removing the garlic.
+		EventBus.interactable_collected.emit(
+			instance.definition,
+			instance.seconds_remaining
 		)
 
 		return
-
 
 func _is_inside_garlic_radius(
 	head_cell: Vector2i,
