@@ -123,9 +123,9 @@ func reset_snake() -> bool:
 	_direction = Vector2i.RIGHT
 	_queued_direction = Vector2i.RIGHT
 
-	_current_health_change += starting_snake_length
-
 	snake_renderer.clear_snake()
+
+	_current_health_change += starting_snake_length
 
 	_update_captured_cells()
 	_emit_snake_state()

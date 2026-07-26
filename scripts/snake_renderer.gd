@@ -22,7 +22,6 @@ var _push_head_transactions_type: Array[Vector4i] = []
 var _push_head_transactions_location: Array[Vector2i] = []
 var _previous_direction: Vector2i = Vector2i.RIGHT
 var _current_head_cell: Vector2i = Vector2i.MIN
-var _current_head_cell_type: Vector4i = Vector4i.MIN
 
 var _clear_cell_transactions: Array[Vector2i] = []
 
@@ -52,11 +51,12 @@ func draw_snake() -> void:
 		
 	# if we have a new head, replace the previous one with the appropriate body part
 	if _current_head_cell != Vector2i.MIN && !_push_head_transactions_type.is_empty():
+		var head_replacement_type: Vector4i = _push_head_transactions_type[_push_head_transactions_type.size() - 1]
 		snake_layer.set_cell(
 				_current_head_cell, 
-				_pick_cell_source_id(_current_head_cell_type, false),
-				_pick_cell_atlas_coords(_current_head_cell_type, false),
-				_pick_alternate_tile(_current_head_cell_type, false)
+				_pick_cell_source_id(head_replacement_type, false),
+				_pick_cell_atlas_coords(head_replacement_type, false),
+				_pick_alternate_tile(head_replacement_type, false)
 		)
 	
 	#fill in the new body or head parts as required
@@ -66,7 +66,6 @@ func draw_snake() -> void:
 		var location = _push_head_transactions_location.pop_front()
 		
 		if should_be_head:
-			_current_head_cell_type = type
 			_current_head_cell = location
 		
 		var curr_source_id: int = _pick_cell_source_id(type, should_be_head)
