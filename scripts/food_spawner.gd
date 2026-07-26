@@ -18,7 +18,21 @@ extends Node
 
 var _food_cell: Vector2i = Vector2i.ZERO
 var _has_food: bool = false
+var _occupied_cells: Dictionary = {}
 
+func _enter_tree() -> void:
+	if !EventBus.game_started.is_connected(_on_game_start):
+		EventBus.game_started.connect(_on_game_start)
+
+	if !EventBus.snake_moved.is_connected(_on_snake_moved):
+		EventBus.snake_moved.connect(_on_snake_moved)
+		
+func _exit_tree() -> void:
+	if EventBus.game_started.is_connected(_on_game_start):
+		EventBus.game_started.disconnect(_on_game_start)
+
+	if EventBus.snake_moved.is_connected(_on_snake_moved):
+		EventBus.snake_moved.disconnect(_on_snake_moved)
 
 func _ready() -> void:
 	if world_grid == null:
@@ -31,14 +45,25 @@ func _ready() -> void:
 			"FoodSpawner: Food Layer has not been assigned."
 		)
 
+func _on_snake_moved(oldHead: Vector2i, head:  Vector2i, body: Array[Vector2i]):
+	_occupied_cells.clear()
+	for cell in body:
+		_occupied_cells[cell] = true
+		
+	for cell in _occupied_cells:
+		if is_food_at(cell):
+			remove_food()
+			EventBus.interaction_triggered_health_change.emit(+1)
+			spawn_food()
 
-func spawn_food(
-	occupied_snake_cells: Array[Vector2i]
-) -> bool:
-	var occupied_cells: Dictionary = {}
+func _on_game_start():
+	remove_food()
+	var success: bool = spawn_food()
+	if !success:
+		EventBus.unrecoverable_error_encountered.emit("Something went wrong when distributing food at game start.")
+	
 
-	for cell in occupied_snake_cells:
-		occupied_cells[cell] = true
+func spawn_food() -> bool:
 
 	var available_cells: Array[Vector2i] = []
 
@@ -46,7 +71,7 @@ func spawn_food(
 		if world_grid.is_blocked(cell):
 			continue
 
-		if occupied_cells.has(cell):
+		if _occupied_cells.has(cell):
 			continue
 
 		available_cells.append(cell)
