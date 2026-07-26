@@ -22,5 +22,8 @@ signal snake_health_changed(old_health: int, health: int)
 #interactables
 signal interaction_triggered_health_change(health_change: int)
 
+enum SnakeSpeedEffect{NO_EFFECT, SLOW_DOWN, SLOW_DOWN_HARD}
+signal interaction_triggered_snake_speed_effect(speed_effect: SnakeSpeedEffect)
+
 #villager events
 signal villager_killed(villager_location_cell: Vector2i, number_of_remaining_villagers: int)

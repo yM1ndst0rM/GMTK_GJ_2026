@@ -2,8 +2,6 @@ class_name GarlicRepulsionSystem
 extends Node
 
 
-const GARLIC_ID: StringName = &"garlic"
-
 const CARDINAL_DIRECTIONS = [
 	Vector2i.UP,
 	Vector2i.DOWN,
@@ -83,7 +81,7 @@ func _is_inside_garlic_radius(
 ) -> bool:
 	for garlic_cell in (
 		interactable_spawner.get_cells_for_id(
-			GARLIC_ID
+			CellsTypes.T_GARLIC
 		)
 	):
 		if _is_cell_inside_garlic_radius(
@@ -101,8 +99,9 @@ func _get_nearest_garlic_distance_squared(
 	var nearest_distance := 1_000_000_000
 
 	for garlic_cell in (
+		
 		interactable_spawner.get_cells_for_id(
-			GARLIC_ID
+			CellsTypes.T_GARLIC
 		)
 	):
 		nearest_distance = mini(
@@ -135,7 +134,7 @@ func _remove_triggering_garlic(
 ) -> void:
 	for garlic_cell in (
 		interactable_spawner.get_cells_for_id(
-			GARLIC_ID
+			CellsTypes.T_GARLIC
 		)
 	):
 		if not _is_cell_inside_garlic_radius(

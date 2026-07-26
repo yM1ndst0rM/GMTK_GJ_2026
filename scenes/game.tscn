@@ -53,16 +53,13 @@ navigation_enabled = false
 script = ExtResource("5_kvpfn")
 metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 
-[node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("garlic_repulsion_system", "world_grid", "snake_renderer", "movement_timer")]
+[node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("world_grid", "snake_renderer", "movement_timer")]
 script = ExtResource("3_p57ef")
-garlic_repulsion_system = NodePath("../GarlicRepulsionSystem")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
 starting_head_cell = Vector2i(6, 6)
 millis_per_move = 170
 movement_timer = NodePath("Timer")
-starting_head_cell = Vector2i(6, 6)
-millis_per_move = 300
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
 wait_time = 0.15
@@ -100,11 +97,6 @@ navigation_enabled = false
 
 [node name="GameManager" type="Node" parent="." unique_id=617365148]
 script = ExtResource("6_p57ef")
-snake_decay_timer = NodePath("../SnakeDecay")
-snake_controller = NodePath("../SnakeController")
-interactable_spawner = NodePath("../InteractableSpawner")
-environment_layer = NodePath("../WorldGrid/GroundLayer")
-villager_controller = NodePath("../WorldGrid/VillagerController")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]
 script = ExtResource("8_gee14")
@@ -123,4 +115,3 @@ script = ExtResource("15_ir15t")
 interactable_spawner = NodePath("../InteractableSpawner")
 world_grid = NodePath("../WorldGrid")
 snake_controller = NodePath("../SnakeController")
-repulsion_radius = null
