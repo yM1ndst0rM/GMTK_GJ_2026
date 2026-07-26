@@ -289,15 +289,12 @@ func _move_snake() -> void:
 		_current_health_change > 0
 	)
 
-	if _hits_self(
-		next_head,
-		will_grow
-	):
+	if _hits_self(next_head, will_grow):
 		_crash()
 		return
 
+	var old_health: int = get_health()
 	if will_grow:
-		var old_health: int = get_health()
 
 		_snake_cells.push_front(
 			next_head
@@ -424,6 +421,10 @@ func remove_tail_segment() -> void:
 		return
 
 	var old_health: int = get_health()
+
+	var removed_tail: Vector2i = (
+		_snake_cells.pop_back()
+	)
 
 	snake_renderer.clear_cell(removed_tail)
 	_occupied_cells.erase(removed_tail)
