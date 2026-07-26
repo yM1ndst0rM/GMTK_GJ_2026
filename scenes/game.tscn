@@ -42,11 +42,11 @@ navigation_enabled = false
 script = ExtResource("5_kvpfn")
 metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 
-[node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("world_grid", "snake_renderer", "food_spawner", "movement_timer")]
+[node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("world_grid", "snake_renderer", "movement_timer")]
 script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
-food_spawner = NodePath("../FoodSpawner")
+starting_snake_length = 33
 starting_head_cell = Vector2i(6, 6)
 millis_per_move = 160
 movement_timer = NodePath("Timer")
@@ -78,13 +78,8 @@ z_index = 11
 tile_set = ExtResource("6_gee14")
 navigation_enabled = false
 
-[node name="GameManager" type="Node" parent="." unique_id=617365148 node_paths=PackedStringArray("snake_decay_timer", "snake_controller", "food_spawner", "environment_layer", "villager_controller")]
+[node name="GameManager" type="Node" parent="." unique_id=617365148]
 script = ExtResource("6_p57ef")
-snake_decay_timer = NodePath("../SnakeDecay")
-snake_controller = NodePath("../SnakeController")
-food_spawner = NodePath("../FoodSpawner")
-environment_layer = NodePath("../WorldGrid/GroundLayer")
-villager_controller = NodePath("../WorldGrid/VillagerController")
 
 [node name="SnakeDecay" type="Node" parent="." unique_id=1923009873]
 script = ExtResource("8_gee14")
