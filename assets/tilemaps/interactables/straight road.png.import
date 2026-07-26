@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://du0p5gnxobngm"
-path="res://.godot/imported/road curve.png-6c2816ad82eda639b35241165b84a0c6.ctex"
+uid="uid://bh5dy78ifykoo"
+path="res://.godot/imported/straight road.png-19115357fb9fb7cce1719c9f57ae5e72.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/tilemaps/environment/road curve.png"
-dest_files=["res://.godot/imported/road curve.png-6c2816ad82eda639b35241165b84a0c6.ctex"]
+source_file="res://assets/tilemaps/interactables/straight road.png"
+dest_files=["res://.godot/imported/straight road.png-19115357fb9fb7cce1719c9f57ae5e72.ctex"]
 
 [params]
 

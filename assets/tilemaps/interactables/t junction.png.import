@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://babp3ds53jfjc"
-path="res://.godot/imported/straight road.png-eea19ca03481b1ae1a8bcb5db4f7f8e8.ctex"
+uid="uid://b4sxjdsydfji2"
+path="res://.godot/imported/t junction.png-0e64ddac91df4a225afdcd9d63278ff2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/tilemaps/environment/straight road.png"
-dest_files=["res://.godot/imported/straight road.png-eea19ca03481b1ae1a8bcb5db4f7f8e8.ctex"]
+source_file="res://assets/tilemaps/interactables/t junction.png"
+dest_files=["res://.godot/imported/t junction.png-0e64ddac91df4a225afdcd9d63278ff2.ctex"]
 
 [params]
 
