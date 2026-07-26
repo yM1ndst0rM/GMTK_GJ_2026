@@ -12,9 +12,10 @@ extends Node
 #game events
 signal game_started
 signal game_ended(win: bool)
+signal unrecoverable_error_encountered(message: String)
 
 #player events
-signal snake_moved(old_head_cell: Vector2i, head_cell: Vector2i)
+signal snake_moved(old_head_cell: Vector2i, head_cell: Vector2i, body: Array[Vector2i])
 signal snake_captured_area_changed(captured_cells: Array[Vector2i])
 signal snake_health_changed(old_health: int, health: int)
 
