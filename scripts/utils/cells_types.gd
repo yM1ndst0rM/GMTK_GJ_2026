@@ -2,6 +2,7 @@ class_name CellsTypes
 
 const T_VILLAGER: StringName = &"is_villager"
 const T_BLOCKS_SNAKE: StringName = &"blocks_snake"
+const T_GARLIC: StringName = &"is_garlic"
 #add more constant types as necessary
 
 static func get_all_cells_of_type(cell_layer:  TileMapLayer, type: String) -> Array[Vector2i]:

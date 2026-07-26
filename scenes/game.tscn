@@ -7,12 +7,17 @@
 [ext_resource type="Script" uid="uid://0if06i3pwuue" path="res://scripts/snake_controller.gd" id="3_p57ef"]
 [ext_resource type="Script" uid="uid://crosx057sjl0k" path="res://scripts/villager_controller.gd" id="3_vtaks"]
 [ext_resource type="Script" uid="uid://dlfq2wqqpt3vi" path="res://scripts/snake_renderer.gd" id="4_u5sy4"]
-[ext_resource type="Script" uid="uid://chs84j85rnc28" path="res://scripts/food_spawner.gd" id="5_gee14"]
+[ext_resource type="Script" uid="uid://chs84j85rnc28" path="res://scripts/interactable_spawner.gd" id="5_gee14"]
 [ext_resource type="Script" uid="uid://bjwf0j4pxsog" path="res://scripts/effects/villager_effect.gd" id="5_kvpfn"]
 [ext_resource type="TileSet" uid="uid://cogjpc5grdxep" path="res://tilesets/main_character.tres" id="6_0tnpc"]
 [ext_resource type="TileSet" uid="uid://byl6slysjbnvh" path="res://tilesets/interactables.tres" id="6_gee14"]
 [ext_resource type="Script" uid="uid://dsus4xjcn6por" path="res://scripts/game_manager.gd" id="6_p57ef"]
 [ext_resource type="Script" uid="uid://cp0eaksajpclj" path="res://scripts/snake_decay_timer.gd" id="8_gee14"]
+[ext_resource type="Script" uid="uid://5cmyjvn3mfel" path="res://scripts/interactables_definition.gd" id="9_dinhu"]
+[ext_resource type="Resource" uid="uid://bvj1cqrmql1jh" path="res://interactables/blood_orange.tres" id="10_kvuet"]
+[ext_resource type="Resource" uid="uid://bknbnqb7kg5v6" path="res://interactables/garlic.tres" id="11_trtic"]
+[ext_resource type="Script" uid="uid://b3u4cycm37621" path="res://scripts/interactables_effect_processor.gd" id="13_kvuet"]
+[ext_resource type="Script" uid="uid://dpho3ghr2d5f7" path="res://scripts/garlic_repulsion_system.gd" id="15_ir15t"]
 
 [node name="Game" type="Node2D" unique_id=1083209613]
 
@@ -53,9 +58,9 @@ metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 script = ExtResource("3_p57ef")
 world_grid = NodePath("../WorldGrid")
 snake_renderer = NodePath("../SnakeRenderer")
+movement_timer = NodePath("Timer")
 starting_head_cell = Vector2i(6, 6)
 millis_per_move = 170
-movement_timer = NodePath("Timer")
 
 [node name="Timer" type="Timer" parent="SnakeController" unique_id=1703464156]
 wait_time = 0.15
@@ -64,7 +69,6 @@ wait_time = 0.15
 script = ExtResource("4_u5sy4")
 snake_layer = NodePath("SnakeLayer")
 head_atlas_coordinates = Vector2i(0, 1)
-body_atlas_coordinates = Vector2i(0, 0)
 metadata/_custom_type_script = "uid://dlfq2wqqpt3vi"
 
 [node name="SnakeLayer" type="TileMapLayer" parent="SnakeRenderer" unique_id=165294711]
@@ -72,17 +76,25 @@ z_index = 3
 tile_set = ExtResource("6_0tnpc")
 navigation_enabled = false
 
-[node name="FoodSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "food_layer")]
+[node name="InteractableSpawner" type="Node" parent="." unique_id=1235196137 node_paths=PackedStringArray("world_grid", "snake_controller", "villager_controller", "interactable_layer", "countdown_labels", "second_timer")]
 script = ExtResource("5_gee14")
 world_grid = NodePath("../WorldGrid")
-food_layer = NodePath("FoodLayer")
-source_id = 6
+snake_controller = NodePath("../SnakeController")
+villager_controller = NodePath("../WorldGrid/VillagerController")
+interactable_layer = NodePath("InteractableItemLayer")
+countdown_labels = NodePath("CountdownLabels")
+second_timer = NodePath("SecondTimer")
+interactable_defintions = Array[ExtResource("9_dinhu")]([ExtResource("10_kvuet"), ExtResource("11_trtic")])
 metadata/_custom_type_script = "uid://chs84j85rnc28"
 
-[node name="FoodLayer" type="TileMapLayer" parent="FoodSpawner" unique_id=1959505902]
+[node name="InteractableItemLayer" type="TileMapLayer" parent="InteractableSpawner" unique_id=1959505902]
 z_index = 11
 tile_set = ExtResource("6_gee14")
 navigation_enabled = false
+
+[node name="CountdownLabels" type="Node2D" parent="InteractableSpawner" unique_id=1716781468]
+
+[node name="SecondTimer" type="Timer" parent="InteractableSpawner" unique_id=101808160]
 
 [node name="GameManager" type="Node" parent="." unique_id=617365148]
 script = ExtResource("6_p57ef")
@@ -93,3 +105,10 @@ decay_after_millis = 1500
 countdown_update_interval_millis = 50
 
 [node name="DecayTimer" type="Timer" parent="SnakeDecay" unique_id=504727378]
+
+[node name="InteractableItemEffectProcessor" type="Node" parent="." unique_id=1494883729]
+script = ExtResource("13_kvuet")
+
+[node name="GarlicRepulsionSystem" type="Node" parent="." unique_id=1695820827 node_paths=PackedStringArray("interactable_spawner")]
+script = ExtResource("15_ir15t")
+interactable_spawner = NodePath("../InteractableSpawner")

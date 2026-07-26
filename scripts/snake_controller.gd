@@ -27,6 +27,8 @@ var starting_snake_length: int = 5
 @export_range(50, 2000, 10)
 var millis_per_move: int = 150
 
+@export_range(1, 2, .01) var max_speed_time_scale: float = 1.5
+@export_range(.01, 1, .01) var min_speed_time_scale: float = .5
 
 @export var movement_timer: Timer
 
@@ -42,6 +44,7 @@ var _movement_enabled: bool = false
 
 var _captured_cells: Dictionary[Vector2i,  bool] = {}
 var _current_health_change: int  = 0
+var _current_speed_effect_modifier: int = 0
 
 func _enter_tree() -> void:
 	if !EventBus.game_started.is_connected(_on_game_started):
@@ -53,6 +56,9 @@ func _enter_tree() -> void:
 	if !EventBus.interaction_triggered_health_change.is_connected(_on_health_change_interaction):
 		EventBus.interaction_triggered_health_change.connect(_on_health_change_interaction)
 
+	if !EventBus.interaction_triggered_snake_speed_effect.is_connected(_on_speed_effect_applied_interaction):
+		EventBus.interaction_triggered_snake_speed_effect.connect(_on_speed_effect_applied_interaction)
+
 func _exit_tree() -> void:
 	if EventBus.game_started.is_connected(_on_game_started):
 		EventBus.game_started.disconnect(_on_game_started)
@@ -62,6 +68,9 @@ func _exit_tree() -> void:
 		
 	if EventBus.interaction_triggered_health_change.is_connected(_on_health_change_interaction):
 		EventBus.interaction_triggered_health_change.disconnect(_on_health_change_interaction)
+
+	if EventBus.interaction_triggered_snake_speed_effect.is_connected(_on_speed_effect_applied_interaction):
+		EventBus.interaction_triggered_snake_speed_effect.disconnect(_on_speed_effect_applied_interaction)
 
 func _ready() -> void:
 	if world_grid == null:
@@ -73,13 +82,8 @@ func _ready() -> void:
 		push_error(
 			"SnakeController: Snake Renderer has not been assigned."
 		)
-
-
-	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
-	movement_timer.one_shot = false
-	movement_timer.autostart = false
-
-	movement_timer.timeout.connect(_on_movement_timer_timeout)
+	
+	_set_up_movement_timer()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _movement_enabled:
@@ -101,7 +105,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func reset_snake() -> bool:
 	set_movement_enabled(false)
 
-   # Should hopefully never happen... but just in case. 
+	# Should hopefully never happen... but just in case. 
 	if world_grid.is_blocked(starting_head_cell):
 		EventBus.unrecoverable_error_encountered.emit(
 			"SnakeController: Starting cell %s is blocked."
@@ -121,11 +125,12 @@ func reset_snake() -> bool:
 
 	_current_health_change += starting_snake_length
 
-	snake_renderer.draw_initial_snake(
+	snake_renderer.draw_snake(
 		_snake_cells
 	)
 
 	_update_captured_cells()
+	_emit_snake_state()
 
 	return true
 
@@ -134,7 +139,7 @@ func set_movement_enabled(enabled: bool) -> void:
 	_movement_enabled = enabled
 
 	if enabled:
-		movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
+		_set_up_movement_timer()
 		movement_timer.start()
 	else:
 		movement_timer.stop()
@@ -144,14 +149,19 @@ func is_movement_enabled() -> bool:
 	return _movement_enabled
 
 
-func set_movement_speed(new_millis_per_move: int) -> void:
-	millis_per_move = maxi(
-		new_millis_per_move,
-		50
+func _emit_snake_state() -> void:
+	EventBus.snake_state_changed.emit(
+		get_head_cell(),
+		get_snake_cells()
 	)
 
-	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
+func _set_up_movement_timer(time_scale: float = 1):
+	movement_timer.wait_time = (millis_per_move / MILLIS_IN_SECOND) * time_scale
+	movement_timer.one_shot = false
+	movement_timer.autostart = false
 
+	if !movement_timer.timeout.is_connected(_on_movement_timer_timeout):
+		movement_timer.timeout.connect(_on_movement_timer_timeout)
 
 func get_snake_cells() -> Array[Vector2i]:
 	var copied_cells: Array[Vector2i] = []
@@ -189,6 +199,28 @@ func _queue_direction(new_direction: Vector2i) -> void:
 func _move_snake() -> void:
 	if _snake_cells.is_empty():
 		return
+	
+	#affect speed of triggering the next movement signal based on the speed affects
+	# We calculate speed in such a way, that it approaches the upper or lower bounds of the time scale smoothly
+	# based on the strength of the effect.
+	if _current_speed_effect_modifier < 0:
+		#we are slowing down
+		var variable_time_scale_part: float = 1.0 - min_speed_time_scale
+		var time_scale: float = variable_time_scale_part  / absf(_current_speed_effect_modifier) + min_speed_time_scale
+		_set_up_movement_timer(time_scale)
+		
+	if _current_speed_effect_modifier > 0:
+		#we are speeding up
+		var variable_time_scale_part: float = max_speed_time_scale - 1.0
+		var time_scale: float = variable_time_scale_part  / _current_speed_effect_modifier + 1.0
+		_set_up_movement_timer(time_scale)
+		
+	else:
+		#reset to normal time scale
+		_set_up_movement_timer()
+		
+	# reset the modifier - effects need to be applied each tick again to persist
+	_current_speed_effect_modifier = 0
 
 	_direction = _queued_direction
 
@@ -222,15 +254,12 @@ func _move_snake() -> void:
 		_snake_cells.push_front(next_head)
 		_occupied_cells[next_head] = true
 
-	snake_renderer.apply_move(
-		next_head,
-		previous_head,
-		removed_tail,
-		remove_tail
+	snake_renderer.draw_snake(
+		_snake_cells
 	)
 
 	EventBus.snake_moved.emit(previous_head, next_head, get_snake_cells())
-		
+	_emit_snake_state()
 	_update_captured_cells()
 
 func _on_health_change_interaction(delta_health: int):
@@ -242,6 +271,14 @@ func _on_health_change_interaction(delta_health: int):
 		_current_health_change += 1
 		remove_tail_segment()
 		
+func _on_speed_effect_applied_interaction(effect: EventBus.SnakeSpeedEffect):
+	match effect:
+		EventBus.SnakeSpeedEffect.SLOW_DOWN:
+			_current_speed_effect_modifier += -1
+		EventBus.SnakeSpeedEffect.SLOW_DOWN_HARD:
+			_current_speed_effect_modifier += -2
+		EventBus.SnakeSpeedEffect.NO_EFFECT:
+			pass
 
 func _hits_self(
 	next_head: Vector2i,
@@ -265,14 +302,27 @@ func _crash() -> void:
 	set_movement_enabled(false)
 	EventBus.snake_health_changed.emit(get_health(), 0)
 	
-func remove_tail_segment() :
-	if get_health() > 0:
-		var removed_tail: Vector2i = _snake_cells.pop_back()
+func remove_tail_segment() -> void:
+	if get_health() <= 0:
+		return
 
-		_occupied_cells.erase(removed_tail)
-		snake_renderer.erase_segment(removed_tail)
-		EventBus.snake_health_changed.emit(get_health() + 1, get_health())
+	var old_health: int = get_health()
+	var removed_tail: Vector2i = _snake_cells.pop_back()
 
+	_occupied_cells.erase(removed_tail)
+
+	# SnakeRenderer redraws the complete snake.
+	snake_renderer.draw_snake(
+		_snake_cells
+	)
+
+	EventBus.snake_health_changed.emit(
+		old_health,
+		get_health()
+	)
+
+	_emit_snake_state()
+	_update_captured_cells()
 
 func get_snake_length() -> int:
 	return _snake_cells.size()

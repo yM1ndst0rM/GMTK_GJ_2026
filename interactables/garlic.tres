@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="InteractablesDefinition" format=3 uid="uid://bknbnqb7kg5v6"]
+
+[ext_resource type="Script" uid="uid://5cmyjvn3mfel" path="res://scripts/interactables_definition.gd" id="1_aryia"]
+
+[resource]
+script = ExtResource("1_aryia")
+interactable_id = &"garlic"
+initial_spawn_delay_seconds = 8.0
+minimum_distance_from_snake = 6
+maximum_active = 3
+minimum_spawn_radius = 1
+maximum_spawn_radius = 3
+contributes_to_growth = false
+collect_on_contact = false
+spawn_origin = 1
+metadata/_custom_type_script = "uid://5cmyjvn3mfel"
