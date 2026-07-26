@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://clb87hg4kh156"]
+
+[ext_resource type="Texture2D" uid="uid://cv60ojttq12l6" path="res://assets/art/title_screen_art.png" id="1_fgkus"]
+[ext_resource type="Script" uid="uid://cpi05ob8yme0q" path="res://scripts/main_menu_controller.gd" id="1_sa3yf"]
+
+[node name="TitleScreen" type="Control" unique_id=304702107]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_sa3yf")
+game_scene_path = "uid://c6ad6i2cilsfw"
+
+[node name="Background" type="TextureRect" parent="." unique_id=388445893]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_fgkus")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="ButtonContainer" type="CenterContainer" parent="." unique_id=485772131]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ButtonContainer" unique_id=2020886357]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="StartButton" type="Button" parent="ButtonContainer/VBoxContainer" unique_id=1984835985]
+z_index = 1
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "Start"
+
+[node name="QuitButton" type="Button" parent="ButtonContainer/VBoxContainer" unique_id=809030327]
+z_index = 1
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "Quit
+"

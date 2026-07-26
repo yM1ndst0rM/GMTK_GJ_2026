@@ -11,7 +11,7 @@ signal game_finished(final_score: int, player_won: bool)
 
 @export var snake_controller: SnakeController
 
-@export var food_spawner: FoodSpawner
+@export var interactable_spawner: InteractableSpawner
 
 @export var environment_layer: TileMapLayer
 
@@ -29,7 +29,7 @@ func _ready() -> void:
 
 		return
 
-	if food_spawner == null:
+	if interactable_spawner == null:
 		push_error(
 			"GameManager: Food Spawner has not been assigned."
 		)
@@ -40,9 +40,6 @@ func _ready() -> void:
 		_on_snake_crashed
 	)
 
-	snake_controller.food_consumed.connect(
-		_on_food_consumed
-	)
 	
 	if snake_decay_timer == null:
 		push_error(
@@ -73,7 +70,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func start_new_game() -> void:
 	_game_over = false
 
-	food_spawner.remove_food()
+	#interactable_spawner.remove_food()
 
 	var snake_reset_successful: bool = (
 		snake_controller.reset_snake()
@@ -83,13 +80,7 @@ func start_new_game() -> void:
 		_finish_game(false)
 		return
 
-	var food_spawned: bool = food_spawner.spawn_food(
-		snake_controller.get_snake_cells()
-	)
-
-	if not food_spawned:
-		_finish_game(true)
-		return
+	interactable_spawner.start_spawning()
 
 	game_started.emit()
 	
@@ -101,18 +92,6 @@ func start_new_game() -> void:
 
 func is_game_over() -> bool:
 	return _game_over
-
-
-func _on_food_consumed() -> void:
-	if _game_over:
-		return
-
-	var food_spawned: bool = food_spawner.spawn_food(
-		snake_controller.get_snake_cells()
-	)
-
-	if not food_spawned:
-		_finish_game(true)
 
 
 func _on_snake_crashed() -> void:

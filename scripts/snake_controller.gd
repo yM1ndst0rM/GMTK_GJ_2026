@@ -1,18 +1,23 @@
 class_name SnakeController
 extends Node
 
+
 const MILLIS_IN_SECOND: float = 1000.0
 
+
 signal snake_crashed
-signal food_consumed
+signal head_entered_cell(cell: Vector2i)
 signal snake_moved(head_cell: Vector2i)
 signal snake_length_changed(new_length: int)
+
+var _movement_time_multipliers: Dictionary = {}
+@export var garlic_repulsion_system: GarlicRepulsionSystem
 
 @export_category("References")
 
 @export var world_grid: WorldGrid
 @export var snake_renderer: SnakeRenderer
-@export var food_spawner: FoodSpawner
+@export var movement_timer: Timer
 
 
 @export_category("Snake Length")
@@ -20,6 +25,7 @@ signal snake_length_changed(new_length: int)
 ## The head counts as one segment.
 @export_range(1, 100, 1)
 var minimum_snake_length: int = 1
+
 
 @export_category("Starting Position")
 
@@ -32,9 +38,6 @@ var minimum_snake_length: int = 1
 var millis_per_move: int = 150
 
 
-@export var movement_timer: Timer
-
-
 var _snake_cells: Array[Vector2i] = []
 
 # Used like a HashSet for fast self-collision checks.
@@ -44,6 +47,9 @@ var _direction: Vector2i = Vector2i.RIGHT
 var _queued_direction: Vector2i = Vector2i.RIGHT
 
 var _movement_enabled: bool = false
+
+# Each point prevents the tail from moving for one movement.
+var _pending_growth: int = 0
 
 
 func _ready() -> void:
@@ -57,12 +63,16 @@ func _ready() -> void:
 			"SnakeController: Snake Renderer has not been assigned."
 		)
 
-	if food_spawner == null:
+	if movement_timer == null:
 		push_error(
-			"SnakeController: Food Spawner has not been assigned."
+			"SnakeController: Movement Timer has not been assigned."
 		)
+		return
 
-	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
+	movement_timer.wait_time = (
+		millis_per_move / MILLIS_IN_SECOND
+	)
+
 	movement_timer.one_shot = false
 	movement_timer.autostart = false
 
@@ -98,11 +108,9 @@ func reset_snake() -> bool:
 		starting_head_cell + Vector2i.LEFT * 3,
 		starting_head_cell + Vector2i.LEFT * 4,
 		starting_head_cell + Vector2i.LEFT * 5
-		]
-
+	]
 
 	for cell in starting_cells:
-		# Should hopefully never happen... but just in case. 
 		if world_grid.is_blocked(cell):
 			push_error(
 				"SnakeController: Starting cell %s is blocked."
@@ -120,11 +128,11 @@ func reset_snake() -> bool:
 
 	_direction = Vector2i.RIGHT
 	_queued_direction = Vector2i.RIGHT
+	_pending_growth = 0
 
-	snake_renderer.draw_initial_snake(
+	snake_renderer.draw_snake(
 		_snake_cells
 	)
-	
 
 	snake_length_changed.emit(
 		_snake_cells.size()
@@ -137,7 +145,7 @@ func set_movement_enabled(enabled: bool) -> void:
 	_movement_enabled = enabled
 
 	if enabled:
-		movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
+		_refresh_movement_wait_time()
 		movement_timer.start()
 	else:
 		movement_timer.stop()
@@ -147,13 +155,15 @@ func is_movement_enabled() -> bool:
 	return _movement_enabled
 
 
-func set_movement_speed(new_millis_per_move: int) -> void:
+func set_movement_speed(
+	new_millis_per_move: int
+) -> void:
 	millis_per_move = maxi(
 		new_millis_per_move,
 		50
 	)
 
-	movement_timer.wait_time = millis_per_move / MILLIS_IN_SECOND
+	_refresh_movement_wait_time()
 
 
 func get_snake_cells() -> Array[Vector2i]:
@@ -174,6 +184,20 @@ func occupies_cell(cell: Vector2i) -> bool:
 	return _occupied_cells.has(cell)
 
 
+func add_growth(amount: int) -> void:
+	if amount <= 0:
+		return
+
+	_pending_growth += amount
+
+	print(
+		"Snake growth queued: ",
+		amount,
+		". Total pending: ",
+		_pending_growth
+	)
+
+
 func _on_movement_timer_timeout() -> void:
 	if not _movement_enabled:
 		return
@@ -181,7 +205,9 @@ func _on_movement_timer_timeout() -> void:
 	_move_snake()
 
 
-func _queue_direction(new_direction: Vector2i) -> void:
+func _queue_direction(
+	new_direction: Vector2i
+) -> void:
 	# Do not allow an immediate 180-degree turn.
 	if new_direction == -_direction:
 		return
@@ -194,65 +220,115 @@ func _move_snake() -> void:
 		return
 
 	_direction = _queued_direction
+	
+	
 
-	var previous_head: Vector2i = _snake_cells[0]
-	var next_head: Vector2i = previous_head + _direction
-
-	var eating_food: bool = food_spawner.is_food_at(
-		next_head
+	var next_head: Vector2i = (
+		_snake_cells[0] + _direction
 	)
+	
+	if (
+		garlic_repulsion_system != null
+		and garlic_repulsion_system.would_repel(
+			next_head
+		)
+	):
+		var forced_direction: Vector2i = (
+			garlic_repulsion_system.trigger_repulsion(
+				_snake_cells[0],
+				next_head,
+				_direction
+			)
+		)
+
+		# Triggering the garlic removes one bat.
+		if not remove_tail_segment():
+			_crash()
+			return
+
+		# The garlic has already been removed at this point.
+		# If there is no valid push direction, skip this move.
+		if forced_direction == Vector2i.ZERO:
+			return
+
+		_direction = forced_direction
+		_queued_direction = forced_direction
+
+		next_head = (
+			_snake_cells[0]
+			+ forced_direction
+		)
 
 	if world_grid.is_blocked(next_head):
 		_crash()
 		return
 
-	if _hits_self(next_head, eating_food):
+	# Before entering the cell, only already-queued growth
+	# determines whether the current tail will remain.
+	var tail_will_remain: bool = (
+		_pending_growth > 0
+	)
+
+	if _hits_self(next_head, tail_will_remain):
 		_crash()
 		return
 
-	var removed_tail := Vector2i.ZERO
-	var remove_tail := false
+	# Add the new head first.
+	_snake_cells.push_front(next_head)
+	_occupied_cells[next_head] = true
 
-	if eating_food:
-		_snake_cells.push_front(next_head)
-		_occupied_cells[next_head] = true
+	# InteractableSpawner listens for this signal.
+	#
+	# When the entered cell contains a blood orange:
+	# 1. InteractableSpawner removes it.
+	# 2. InteractableSpawner emits interactable_collected.
+	# 3. InteractableEffectProcessor calls add_growth().
+	#
+	# Signal callbacks happen before this function continues,
+	# so _pending_growth will be updated below.
+	head_entered_cell.emit(next_head)
 
+	var grew_this_move: bool = (
+		_pending_growth > 0
+	)
+
+	if grew_this_move:
+		_pending_growth -= 1
+	else:
+		var removed_tail: Vector2i = (
+			_snake_cells.pop_back()
+		)
+
+		# Protect the new head if it entered the cell
+		# that the old tail was vacating.
+		if removed_tail != next_head:
+			_occupied_cells.erase(removed_tail)
+
+	snake_renderer.draw_snake(
+		_snake_cells
+	)
+
+	if grew_this_move:
 		snake_length_changed.emit(
 			_snake_cells.size()
 		)
-	else:
-		removed_tail = _snake_cells.pop_back()
-		remove_tail = true
-
-		_occupied_cells.erase(removed_tail)
-
-		_snake_cells.push_front(next_head)
-		_occupied_cells[next_head] = true
-
-	snake_renderer.apply_move(
-		next_head,
-		previous_head,
-		removed_tail,
-		remove_tail
-	)
 
 	snake_moved.emit(next_head)
-
-	if eating_food:
-		food_consumed.emit()
 
 
 func _hits_self(
 	next_head: Vector2i,
-	will_grow: bool
+	tail_will_remain: bool
 ) -> bool:
 	if not _occupied_cells.has(next_head):
 		return false
 
-	# The snake may enter its current tail cell when that
-	# tail is leaving during the same movement.
-	if not will_grow:
-		var tail_cell: Vector2i = _snake_cells.back()
+	# The snake may enter the current tail cell when
+	# that tail will leave during this movement.
+	if not tail_will_remain:
+		var tail_cell: Vector2i = (
+			_snake_cells.back()
+		)
 
 		if next_head == tail_cell:
 			return false
@@ -263,15 +339,21 @@ func _hits_self(
 func _crash() -> void:
 	set_movement_enabled(false)
 	snake_crashed.emit()
-	
+
+
 func remove_tail_segment() -> bool:
 	if _snake_cells.size() <= minimum_snake_length:
 		return false
 
-	var removed_tail: Vector2i = _snake_cells.pop_back()
+	var removed_tail: Vector2i = (
+		_snake_cells.pop_back()
+	)
 
 	_occupied_cells.erase(removed_tail)
-	snake_renderer.erase_segment(removed_tail)
+
+	snake_renderer.draw_snake(
+		_snake_cells
+	)
 
 	snake_length_changed.emit(
 		_snake_cells.size()
@@ -285,4 +367,47 @@ func get_snake_length() -> int:
 
 
 func can_remove_tail_segment() -> bool:
-	return _snake_cells.size() > minimum_snake_length
+	return (
+		_snake_cells.size()
+		> minimum_snake_length
+	)
+
+func set_movement_time_multiplier(
+	source: StringName,
+	multiplier: float
+) -> void:
+	_movement_time_multipliers[source] = maxf(
+		multiplier,
+		0.05
+	)
+
+	_refresh_movement_wait_time()
+
+
+func remove_movement_time_multiplier(
+	source: StringName
+) -> void:
+	_movement_time_multipliers.erase(source)
+	_refresh_movement_wait_time()
+
+
+func _get_effective_millis_per_move() -> int:
+	var effective_millis := float(
+		millis_per_move
+	)
+
+	for multiplier_value in (
+		_movement_time_multipliers.values()
+	):
+		effective_millis *= float(
+			multiplier_value
+		)
+
+	return roundi(effective_millis)
+
+
+func _refresh_movement_wait_time() -> void:
+	movement_timer.wait_time = (
+		_get_effective_millis_per_move()
+		/ MILLIS_IN_SECOND
+	)
