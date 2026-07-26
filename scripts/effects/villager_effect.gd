@@ -9,4 +9,4 @@ func _exit_tree() -> void:
 	EventBus.villager_killed.disconnect(_on_villager_died)
 
 func _on_villager_died(location: Vector2i , _ignored_ : int):
-	$"../InteractiblesLayer".erase(location)
+	$"../InteractablesLayer".erase_cell(location)
