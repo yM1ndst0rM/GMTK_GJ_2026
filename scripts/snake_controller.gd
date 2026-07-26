@@ -295,6 +295,7 @@ func _on_game_ended(is_won: bool):
 func _update_captured_cells():
 	var captured_cells: Dictionary[Vector2i, bool] = world_grid.calculate_captured_area(get_snake_cells())
 	if captured_cells.size() != _captured_cells.size() || !captured_cells.has_all(_captured_cells.keys()):
-		_captured_cells = captured_cells
+		_captured_cells.clear()
+		_captured_cells.merge(captured_cells)
 		EventBus.snake_captured_area_changed.emit(captured_cells.keys())
 		
