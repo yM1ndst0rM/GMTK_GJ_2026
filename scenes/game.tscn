@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://crosx057sjl0k" path="res://scripts/villager_controller.gd" id="3_vtaks"]
 [ext_resource type="Script" uid="uid://dlfq2wqqpt3vi" path="res://scripts/snake_renderer.gd" id="4_u5sy4"]
 [ext_resource type="Script" uid="uid://chs84j85rnc28" path="res://scripts/food_spawner.gd" id="5_gee14"]
+[ext_resource type="Script" uid="uid://bjwf0j4pxsog" path="res://scripts/effects/villager_effect.gd" id="5_kvpfn"]
 [ext_resource type="TileSet" uid="uid://cogjpc5grdxep" path="res://tilesets/main_character.tres" id="6_0tnpc"]
 [ext_resource type="TileSet" uid="uid://byl6slysjbnvh" path="res://tilesets/interactables.tres" id="6_gee14"]
 [ext_resource type="Script" uid="uid://dsus4xjcn6por" path="res://scripts/game_manager.gd" id="6_p57ef"]
@@ -36,6 +37,10 @@ tile_map_data = PackedByteArray("AAADAAMAAgAAAAAAAAADAAQAAgAAAAAAAAAEAAMAAgAAAAA
 tile_set = ExtResource("6_gee14")
 collision_enabled = false
 navigation_enabled = false
+
+[node name="VillagerEffect" type="Node" parent="WorldGrid/VillagerController" unique_id=2090602280]
+script = ExtResource("5_kvpfn")
+metadata/_custom_type_script = "uid://bjwf0j4pxsog"
 
 [node name="SnakeController" type="Node" parent="." unique_id=1590637742 node_paths=PackedStringArray("world_grid", "snake_renderer", "food_spawner", "movement_timer")]
 script = ExtResource("3_p57ef")
