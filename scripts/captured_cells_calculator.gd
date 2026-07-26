@@ -2,7 +2,7 @@ class_name CapturedCellsCalculator
 
 static var _captured_cells: Dictionary[Vector2i, bool] = {}
 
-static func get_all_captured_cells(targetLayer: TileMapLayer, player_occupied_cells: Dictionary[Vector2i, bool]) -> Dictionary[Vector2i, bool]:
+static func get_all_captured_cells(targetLayer: TileMapLayer, player_occupied_cells: Array[Vector2i]) -> Dictionary[Vector2i, bool]:
 	#we mark every single used cell as captured
 	_captured_cells.clear()
 	var used_cells: Array[Vector2i] = targetLayer.get_used_cells()
@@ -32,7 +32,7 @@ static func get_all_captured_cells(targetLayer: TileMapLayer, player_occupied_ce
 
 	
 # if we consider this cell saved, it will spread its saved state to all neighbours recursively
-static func _save_cell_and_neighbours(cell: Vector2i, targetLayer: TileMapLayer, player_occupied_cells: Dictionary[Vector2i, bool]):
+static func _save_cell_and_neighbours(cell: Vector2i, targetLayer: TileMapLayer, player_occupied_cells: Array[Vector2i]):
 	if(!_captured_cells.has(cell)): return
 	if(targetLayer.get_cell_source_id(cell) == -1): return
 	if(player_occupied_cells.has(cell)): return
